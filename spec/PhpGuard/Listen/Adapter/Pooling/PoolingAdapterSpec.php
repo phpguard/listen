@@ -27,19 +27,19 @@ class PoolingAdapterSpec extends ObjectBehavior
         $this->shouldImplement('Psr\Log\LoggerAwareInterface');
     }
 
-    function it_should_initialize_watcher(Listener $watcher,WatchMap $watchMap)
+    function it_should_initialize_listener(Listener $listener,WatchMap $watchMap)
     {
-        $watcher->getPath()
+        $listener->getPaths()
             ->shouldBeCalled()
-            ->willReturn(__DIR__)
+            ->willReturn(array(__DIR__))
         ;
 
-        $watcher->hasPath(Argument::any())
+        $listener->hasPath(Argument::any())
             ->shouldBeCalled()
             ->willReturn(true)
         ;
 
-        $this->initialize($watcher);
+        $this->initialize($listener);
     }
 
     function it_should_watch_resource_changes(ResourceInterface $resource)

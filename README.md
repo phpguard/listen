@@ -5,7 +5,7 @@
 The `PhpGuard\Listen` listens to any filesystem events and notifies you about the changes.
 
 ## Installing
-    $ cd /path/to/project
+    $ cd /paths/to/project
     $ composer require --dev phpguard/listen "dev-master"
 
 ## Usage
@@ -21,12 +21,27 @@ The `PhpGuard\Listen` listens to any filesystem events and notifies you about th
         "callback" => function(ChangeSetEvent $event){
             foreach($event->getFilesystemEvents() as $fse){
                 echo sprintf(
-                    'mode:"%s", path: "%s",
+                    'mode:"%s", paths: "%s",
                     $fse->getHumanType,
                     $fse->getResource()->getRelativePath(),
                 );
             }
         }
     );
-    $listen->to('/foo/bar',$options,FilesystemEvent::All);
+    $listen
+        ->to('/foo/bar') // returns the listener objects
+        ->paths('/hello') // add path
+        ->ignores('*.html') // ignore file
+        ->patterns('#^/src\/*.\.php#')
+        ->patterns('#^/src\/*.\.php#')
+        ->callbacks(function(ChangeSetEvent $event){
+            foreach($event->getFilesystemEvents() as $fse){
+                echo sprintf(
+                    'mode:"%s", paths: "%s",
+                    $fse->getHumanType,
+                    $fse->getResource()->getRelativePath(),
+                );
+            }
+        })
+    ;
     $listen->start();

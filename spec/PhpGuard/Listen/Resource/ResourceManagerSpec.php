@@ -10,10 +10,10 @@ use Prophecy\Argument;
 
 class ResourceManagerSpec extends ObjectBehavior
 {
-    function let(AdapterInterface $adapter,Listener $watcher)
+    function let(AdapterInterface $adapter,Listener $listener)
     {
-        $watcher->getPath()->willReturn(__DIR__);
-        $watcher->hasPath(Argument::any())->willReturn(true);
+        $listener->getPaths()->willReturn(array(__DIR__));
+        $listener->hasPath(Argument::any())->willReturn(true);
         $this->beConstructedWith($adapter);
     }
 
@@ -33,27 +33,27 @@ class ResourceManagerSpec extends ObjectBehavior
         $this->hasResource('any')->shouldReturn(true);
     }
 
-    function it_scan_should_process_directory(AdapterInterface $adapter,Listener $watcher)
+    function it_scan_should_process_directory(AdapterInterface $adapter,Listener $listener)
     {
         $adapter->watch(Argument::any())
             ->shouldBeCalled()
         ;
 
-        $watcher
+        $listener
             ->hasPath(Argument::any())
             ->shouldBeCalled()
             ->willReturn(true)
         ;
-        $this->scan($watcher);
+        $this->scan($listener);
     }
 
-    function it_scan_should_process_file(AdapterInterface $adapter,Listener $watcher)
+    function it_scan_should_process_file(AdapterInterface $adapter,Listener $listener)
     {
-        $watcher->getPath()
-            ->willReturn(__FILE__)
+        $listener->getPaths()
+            ->willReturn(array(__FILE__))
         ;
         $adapter->watch(Argument::any())->shouldBeCalled();
-        $this->scan($watcher);
+        $this->scan($listener);
     }
 
     function it_hasResource_returns_true_if_path_mapped(ResourceInterface $resource)

@@ -20,16 +20,12 @@ class ListenSpec extends ObjectBehavior
         $this->shouldHaveType('PhpGuard\Listen\Listen');
     }
 
-    function it_should_watch_a_directory(AdapterInterface $adapter)
+    function it_should_listen_to_directory_change_properly(AdapterInterface $adapter)
     {
-        $options = array();
-
-        $adapter->initialize(Argument::any())
-            ->shouldBeCalled()
-        ;
-
-        $watcher = $this->to(getcwd(),$options);
-        $watcher->getEventMask()->shouldReturn(FilesystemEvent::ALL);
-        $watcher->getPath()->shouldReturn(getcwd());
+        $listener = $this->to(getcwd());
+        $listener->getEventMask()->shouldReturn(FilesystemEvent::ALL);
+        $listener->getPaths()->shouldReturn(array(getcwd()));
+        $listener->getPatterns()->shouldReturn(array());
+        $listener->getIgnores()->shouldReturn(array());
     }
 }

@@ -24,4 +24,6 @@ interface AdapterInterface
     public function watch(ResourceInterface $resource);
 
     public function unwatch(ResourceInterface $resourceInterface);
+
+    public function start();
 }

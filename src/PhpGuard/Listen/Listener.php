@@ -22,13 +22,27 @@ class Listener
 {
     private $eventMask;
 
-    private $path;
+    /**
+     * Set paths to listen
+     * @var array
+     */
+    private $paths;
 
     private $patterns = array();
 
     private $ignores = array();
 
     private $callback;
+
+    public function __construct($paths=array())
+    {
+        $this->eventMask = FilesystemEvent::ALL;
+
+        if(!is_array($paths)){
+            $paths = array($paths);
+        }
+        $this->paths = $paths;
+    }
 
     public function setEventMask($eventMask)
     {
@@ -50,7 +64,23 @@ class Listener
         return $this->eventMask;
     }
 
-    public function setPath($path)
+    public function setPaths($paths)
+    {
+        if(!is_array($paths)){
+            $paths = array($paths);
+        }
+        foreach($paths as $path){
+            $this->addPath($path);
+        }
+        return $this;
+    }
+
+    public function getPaths()
+    {
+        return $this->paths;
+    }
+
+    public function addPath($path)
     {
         if(!is_dir($path)){
             throw new \InvalidArgumentException(sprintf(
@@ -58,14 +88,14 @@ class Listener
                 $path
             ));
         }
-        $this->path = $path;
-
-        return $this;
+        if(!in_array($path,$this->paths)){
+            $this->paths[] = $path;
+        }
     }
 
-    public function getPath()
+    public function hasPath(SplFileInfo $file)
     {
-        return $this->path;
+        return true;
     }
 
     public function setPatterns($pattern)
@@ -78,6 +108,11 @@ class Listener
         return $this;
     }
 
+    public function getPatterns()
+    {
+        return $this->patterns;
+    }
+
     public function setIgnores($ignores)
     {
         if(!is_array($ignores)){
@@ -87,11 +122,6 @@ class Listener
         $this->ignores = array_merge($this->ignores,$ignores);
 
         return $this;
-    }
-
-    public function getPatterns()
-    {
-        return $this->patterns;
     }
 
     public function getIgnores()
@@ -117,8 +147,8 @@ class Listener
         return $this->callback;
     }
 
-    public function hasPath(SplFileInfo $file)
+    public function notifyCallback()
     {
-        return true;
+
     }
 }

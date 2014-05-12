@@ -28,6 +28,8 @@ class Listen
 
     private $latency;
 
+    private $listeners;
+
     public function __construct(EventDispatcherInterface $dispatcher=null,AdapterInterface $adapter=null)
     {
         if(is_null($dispatcher)){
@@ -43,24 +45,18 @@ class Listen
     /**
      * Set directory to initialize
      *
-     * @param       $path File or Directory to initialize
-     * @param       array $options An options for watcher
-     * @param       int $eventMask
-     * @internal    param string $directory
+     * @param       $paths
+     * @internal    param \PhpGuard\Listen\File $paths or Directory to initialize
+     * @internal    param array $options An options for watcher
+     * @internal    param int $eventMask
      * @return      Listener
      */
-    public function to($path,$options,$eventMask=FilesystemEvent::ALL)
+    public function to($paths)
     {
         $adapter = $this->adapter;
 
-        $watcher = new Listener();
-
-        //$watcher->setOptions($options);
-        $watcher->setEventMask($eventMask);
-        $watcher->setPath($path);
-
-        $adapter->initialize($watcher);
-
-        return $watcher;
+        $listener = new Listener($paths);
+        $this->listeners[] = $listener;
+        return $listener;
     }
 }

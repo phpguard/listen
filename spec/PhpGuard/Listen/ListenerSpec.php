@@ -25,17 +25,18 @@ class ListenerSpec extends ObjectBehavior
             ->duringSetEventMask(0);
     }
 
-    function its_path_should_be_mutable()
+    function its_paths_should_be_mutable()
     {
-        $this->setPath(getcwd())->shouldReturn($this);
-        $this->getPath()->shouldReturn(getcwd());
+        $this->setPaths(getcwd())->shouldReturn($this);
+        $this->getPaths()->shouldReturn(array(getcwd()));
     }
 
-    function its_setPath_throws_when_the_path_is_invalid()
+    function its_addPath_throws_when_the_path_does_not_exists()
     {
         $this->shouldThrow('InvalidArgumentException')
-            ->duringSetPath('/foo/bar');
+            ->duringAddPath('/foo/bar');
     }
+
 
     function its_getPatterns_returns_empty_array_by_default()
     {

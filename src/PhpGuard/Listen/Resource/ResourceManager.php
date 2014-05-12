@@ -34,15 +34,15 @@ class ResourceManager
 
     public function scan(Listener $watcher)
     {
-        $path = $watcher->getPath();
-        if(is_file($path)){
-            // watching on single file
-            $resource = new FileResource($path);
-            $this->adapter->watch($resource);
-        }else{
-            $this->initDir($path,$watcher);
+        foreach($watcher->getPaths() as $path){
+            if(is_file($path)){
+                // watching on single file
+                $resource = new FileResource($path);
+                $this->adapter->watch($resource);
+            }else{
+                $this->initDir($path,$watcher);
+            }
         }
-
     }
 
     public function hasResource($resourceID)

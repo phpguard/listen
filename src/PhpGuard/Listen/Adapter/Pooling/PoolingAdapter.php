@@ -30,9 +30,9 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
      */
     private $logger;
 
-    private $watchMap;
-
     private $resourceManager;
+    
+    private $listeners = array();
 
     public function __construct()
     {
@@ -50,9 +50,10 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
         $this->logger = $logger;
     }
 
-    public function initialize(Listener $watcher)
+    public function initialize(Listener $listener)
     {
-        $this->resourceManager->scan($watcher);
+        $this->resourceManager->scan($listener);
+        $this->listeners[] = $listener;
     }
 
     public function getEvents()
@@ -78,4 +79,11 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
     {
 
     }
+
+    public function start()
+    {
+
+    }
+
+
 }
