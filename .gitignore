@@ -4,6 +4,7 @@ vendor
 composer.lock
 composer.phar
 .phpspec
-*.xml
-*.yml
+phpunit.xml
+phpunit-report.xml
 build
+phpguard.yml
