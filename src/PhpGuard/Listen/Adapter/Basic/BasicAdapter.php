@@ -13,6 +13,7 @@ namespace PhpGuard\Listen\Adapter\Basic;
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Event\FilesystemEvent;
+use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Resource\ResourceManager;
 use PhpGuard\Listen\Listener;
@@ -40,6 +41,8 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
     private $changes = array();
 
     private $inMonitor = false;
+
+    private $unchecked = array();
 
     public function __construct()
     {
@@ -78,7 +81,11 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
         /* @var Listener $listener */
         foreach($this->listeners as $listener){
             $this->changes = array();
+            $this->unchecked = $this->trackMap;
             $rm->scan($listener);
+            // cleanup untracked changes
+            $this->cleanup($listener);
+
             $listener->setChangeSet($this->changes);
         }
         $this->inMonitor = false;
@@ -97,30 +104,43 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
 
     public function watch(ResourceInterface $resource)
     {
-        if(is_null($resource->getTrackingID())){
-            if($this->inMonitor){
-                $this->changes[] = new FilesystemEvent($resource->getResource(),FilesystemEvent::CREATE);
-            }
+        if(false==$this->inMonitor){
             $resource->setTrackingID($resource->getID());
             $this->trackMap[$resource->getID()] = $resource->getChecksum();
-        }elseif($this->inMonitor){
+            return;
+        }
+
+        if(is_null($resource->getTrackingID())){
+            $resource->setTrackingID($resource->getID());
+            $this->addChangeSet($resource,new FilesystemEvent(
+                $resource->getResource(),FilesystemEvent::CREATE
+            ));
+            $this->trackMap[$resource->getID()] = $resource->getChecksum();
+        }else{
             $trackID = $resource->getID();
             $checkSum = $this->trackMap[$trackID];
-
-            if($resource->getChecksum()!==$checkSum && $resource->isExists()){
-                // file should be modified
-                $this->changes[] = new FilesystemEvent(
+            if(
+                $resource->getChecksum()!==$checkSum
+                && $resource->isExists()
+                // only file change is tracked
+                && $resource instanceof FileResource
+            ){
+                $this->addChangeSet($resource,new FilesystemEvent(
                     $resource->getResource(),
                     FilesystemEvent::MODIFY
-                );
+                ));
                 $checkSum = $resource->getChecksum();
                 $this->trackMap[$trackID] = $checkSum;
+                unset($this->unchecked[$trackID]);
             }elseif(!$resource->isExists()){
-                $this->changes[] = new FilesystemEvent(
+                $resource->getParent()->removeChild($resource);
+                $this->addChangeSet($resource,new FilesystemEvent(
                     $resource->getResource(),
                     FilesystemEvent::DELETE
-                );
+                ));
+
                 $this->unwatch($resource);
+                unset($this->unchecked[$trackID]);
             }
         }
     }
@@ -129,5 +149,39 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
     {
         unset($this->trackMap[$resource->getID()]);
         $this->resourceManager->remove($resource);
+    }
+
+    private function cleanup()
+    {
+        // cleanup unchecked files
+        $rm = $this->resourceManager;
+
+        foreach($this->unchecked as $id=>$checksum){
+            $resource = $rm->getResource($id);
+            $path = $resource->getResource();
+            $abs = (string)$path;
+            clearstatcache(true,$abs);
+            if(!$resource->isExists()){
+                $this->addChangeSet($resource, new FilesystemEvent(
+                    $path,FilesystemEvent::DELETE
+                ));
+                $this->unwatch($resource);
+            }
+        }
+    }
+
+    /**
+     * Add changeset to the resource
+     * Only track changeset for file
+     * @param ResourceInterface $resource
+     * @param FilesystemEvent $event
+     */
+    private function addChangeSet(ResourceInterface $resource, FilesystemEvent $event)
+    {
+        if(!$resource instanceof FileResource){
+            return;
+        }
+
+        $this->changes[] = $event;
     }
 }

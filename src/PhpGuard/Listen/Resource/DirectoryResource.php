@@ -31,10 +31,12 @@ class DirectoryResource implements ResourceInterface
 
     private $childs = array();
 
+    private $parent;
+
     public function __construct($resource)
     {
         $this->resource = $resource;
-        $this->id = md5('d'.realpath($resource));
+        $this->id = md5('d'.(string) $resource);
     }
 
     /**
@@ -100,7 +102,7 @@ class DirectoryResource implements ResourceInterface
      */
     public function getResource()
     {
-        return realpath($this->resource);
+        return $this->resource;
     }
 
     /**
@@ -142,11 +144,28 @@ class DirectoryResource implements ResourceInterface
 
     public function getChecksum()
     {
-        return spl_object_hash($this);
+        return md5(spl_object_hash($this).count($this->childs));
     }
 
     public function addChild(ResourceInterface $resource)
     {
         $this->childs[$resource->getID()] = $resource;
+        $resource->setParent($this);
     }
+
+    public function removeChild(ResourceInterface $resource)
+    {
+        unset($this->childs[$resource->getID()]);
+    }
+
+    public function setParent(ResourceInterface $parent)
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent()
+    {
+        return $this->parent;
+    }
+
 }

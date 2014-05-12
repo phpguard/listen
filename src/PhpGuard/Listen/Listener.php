@@ -94,6 +94,7 @@ class Listener
     {
         if(!empty($this->patterns) && $file->isFile()){
 
+
             $retVal = false;
             foreach($this->patterns as $pattern){
                 if(preg_match($pattern,$file->getRealPath())){
@@ -105,8 +106,11 @@ class Listener
                     break;
                 }
             }
+
             return $retVal;
         }
+
+
         return true;
     }
 

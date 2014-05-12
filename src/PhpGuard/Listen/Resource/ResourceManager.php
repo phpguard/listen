@@ -55,6 +55,14 @@ class ResourceManager
         return array_key_exists($resourceID,$this->map);
     }
 
+    /**
+     * @param   string  $resourceID
+     * @return  ResourceInterface
+     */
+    public function getResource($resourceID)
+    {
+        return $this->map[$resourceID];
+    }
     public function addResource(ResourceInterface $resource)
     {
         $id = $resource->getID();

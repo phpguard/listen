@@ -78,4 +78,15 @@ interface ResourceInterface extends \Serializable
      * @return string A string representation of the Resource
      */
     public function __toString();
+
+    /**
+     * @param   ResourceInterface $resource
+     * @return  mixed
+     */
+    public function setParent(ResourceInterface $resource);
+
+    /**
+     * @return  ResourceInterface
+     */
+    public function getParent();
 }

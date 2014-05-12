@@ -23,6 +23,11 @@ class FileResource implements ResourceInterface
 
     private $checksum;
 
+    /**
+     * @var ResourceInterface
+     */
+    private $parent;
+
     public function __construct($resource)
     {
         $this->resource = $resource;
@@ -110,6 +115,7 @@ class FileResource implements ResourceInterface
      */
     public function isExists()
     {
+        clearstatcache(true,(string)$this->resource);
         return is_file($this->resource);
     }
 
@@ -139,6 +145,16 @@ class FileResource implements ResourceInterface
         }
 
         return md5(md5_file(realpath($this->resource)).$this->getModificationTime());
+    }
+
+    public function setParent(ResourceInterface $parent)
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent()
+    {
+        return $this->parent;
     }
 
     /**
