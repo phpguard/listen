@@ -1,0 +1,9 @@
+*.tgz
+*.phar
+vendor
+composer.lock
+composer.phar
+.phpspec
+*.xml
+*.yml
+build

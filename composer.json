@@ -1,0 +1,25 @@
+{
+    "name": "phpguard/listen",
+    "description": "Monitoring File System Events",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anthonius Munthi",
+            "email": "me@itstoni.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "psr/log": "*",
+        "symfony/finder": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "PhpGuard": "src/"
+        }
+    },
+    "require-dev": {
+        "phpspec/phpspec": "*",
+        "monolog/monolog": "*"
+    }
+}
