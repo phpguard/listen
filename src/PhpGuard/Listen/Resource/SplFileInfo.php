@@ -21,7 +21,7 @@ class SplFileInfo extends BaseSplFileInfo
 {
     static public function createFromBaseDir($baseDir,$path)
     {
-        $absolutePath = realpath($baseDir);
+        $absolutePath = realpath($path);
         $baseDirLength = strlen($baseDir);
 
         if($baseDir === substr($absolutePath,0,$baseDirLength)){

@@ -3,6 +3,7 @@
 namespace spec\PhpGuard\Listen;
 
 use PhpGuard\Listen\Event\FilesystemEvent;
+use PhpGuard\Listen\Resource\SplFileInfo;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -45,7 +46,7 @@ class ListenerSpec extends ObjectBehavior
 
     function its_patterns_should_be_mutable()
     {
-        $this->setPatterns('any')->shouldReturn($this);
+        $this->patterns('any')->shouldReturn($this);
         $this->getPatterns()->shouldReturn(array('any'));
     }
 

@@ -10,11 +10,11 @@
  */
 
 namespace PhpGuard\Listen\Resource;
+
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Exception\InvalidArgumentException;
 use PhpGuard\Listen\Listener;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class ResourceManager

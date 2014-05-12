@@ -90,6 +90,21 @@ class Listener
 
     public function hasPath(SplFileInfo $file)
     {
+        if(!empty($this->patterns) && $file->isFile()){
+
+            $retVal = false;
+            foreach($this->patterns as $pattern){
+                if(preg_match($pattern,$file->getRealPath())){
+                    $retVal = true;
+                    break;
+                }
+                if(preg_match($pattern,$file->getRelativePathname())){
+                    $retVal = true;
+                    break;
+                }
+            }
+            return $retVal;
+        }
         return true;
     }
 
@@ -98,7 +113,7 @@ class Listener
         return $this->eventMask;
     }
 
-    public function setPatterns($pattern)
+    public function patterns($pattern)
     {
         if(!is_array($pattern)){
             $pattern = array($pattern);
