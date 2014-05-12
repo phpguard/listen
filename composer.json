@@ -1,6 +1,6 @@
 {
     "name": "phpguard/listen",
-    "description": "Monitoring File System Events",
+    "description": "The \"PhpGuard Listen\" listens to any filesystem events and notifies you about the changes.",
     "license": "MIT",
     "authors": [
         {

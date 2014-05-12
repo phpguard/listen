@@ -13,8 +13,11 @@
          bootstrap="tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="PhpGuard Listen-Report TestSuite">
-            <directory>./tests</directory>
+        <testsuite name="PhpGuard\Listen Spec Test Suite">
+            <file>./tests/PhpSpecTest.php</file>
+        </testsuite>
+        <testsuite name="PhpGuard\Listen Functional TestSuite">
+            <directory>./tests/PhpGuard</directory>
         </testsuite>
     </testsuites>
 
