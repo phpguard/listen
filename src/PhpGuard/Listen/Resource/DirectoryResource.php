@@ -27,10 +27,14 @@ class DirectoryResource implements ResourceInterface
 
     private $trackingID;
 
+    private $checksum;
+
+    private $childs = array();
+
     public function __construct($resource)
     {
         $this->resource = $resource;
-        $this->id = md5($resource);
+        $this->id = md5('d'.realpath($resource));
     }
 
     /**
@@ -60,12 +64,14 @@ class DirectoryResource implements ResourceInterface
         if(!$this->isExists()){
             return -1;
         }
-        if(!isset($this->mtime)){
-            clearstatcache(true,$this->resource);
-            $this->mtime = filemtime($this->resource);
+        clearstatcache(true,$this->resource);
+        $newest = filemtime($this->resource);
+        foreach($this->childs as $child){
+            clearstatcache(true,$child);
+            $newest = max(filemtime($child),$newest);
         }
 
-        return $this->mtime;
+        return $newest;
     }
 
     /**
@@ -134,5 +140,13 @@ class DirectoryResource implements ResourceInterface
         return $this->trackingID;
     }
 
+    public function getChecksum()
+    {
+        return spl_object_hash($this);
+    }
 
+    public function addChild(ResourceInterface $resource)
+    {
+        $this->childs[$resource->getID()] = $resource;
+    }
 }

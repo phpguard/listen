@@ -70,6 +70,8 @@ interface ResourceInterface extends \Serializable
      */
     public function isExists();
 
+    public function getChecksum();
+
     /**
      * Returns a string representation of the Resource.
      *

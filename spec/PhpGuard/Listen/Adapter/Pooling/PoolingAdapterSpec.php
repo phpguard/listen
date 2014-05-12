@@ -45,6 +45,7 @@ class PoolingAdapterSpec extends ObjectBehavior
     function it_should_watch_resource_changes(ResourceInterface $resource)
     {
         $resource->getID()->willReturn('any');
+        $resource->getChecksum()->willReturn('any');
         $resource
             ->setTrackingID('any')
             ->shouldBeCalled()

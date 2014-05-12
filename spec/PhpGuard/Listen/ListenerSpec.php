@@ -13,21 +13,21 @@ class ListenerSpec extends ObjectBehavior
         $this->shouldHaveType('PhpGuard\Listen\Listener');
     }
 
-    function its_event_mask_should_be_mutable()
+    function it_should_set_an_event_to_listen()
     {
-        $this->setEventMask(FilesystemEvent::ALL);
+        $this->event(FilesystemEvent::ALL);
         $this->getEventMask()->shouldReturn(FilesystemEvent::ALL);
     }
 
-    function its_getEventMask_throws_when_setting_an_event_mask_with_invalid_value()
+    function it_should_throws_when_setting_event_with_invalid_value()
     {
         $this->shouldThrow('InvalidArgumentException')
-            ->duringSetEventMask(0);
+            ->duringEvent(0);
     }
 
-    function its_paths_should_be_mutable()
+    function it_should_set_a_directory_to_listen()
     {
-        $this->setPaths(getcwd())->shouldReturn($this);
+        $this->to(getcwd())->shouldReturn($this);
         $this->getPaths()->shouldReturn(array(getcwd()));
     }
 
@@ -56,21 +56,21 @@ class ListenerSpec extends ObjectBehavior
 
     function its_ignores_should_be_mutable()
     {
-        $this->setIgnores('any')->shouldReturn($this);
+        $this->ignores('any')->shouldReturn($this);
         $this->getIgnores()->shouldReturn(array('any'));
     }
 
-    function its_callback_should_be_mutable()
+    function it_should_set_callback()
     {
         $callback = function(){};
-        $this->setCallback($callback)->shouldReturn($this);
+        $this->callback($callback)->shouldReturn($this);
         $this->getCallback()->shouldReturn($callback);
     }
 
-    function its_setCallback_throws_if_passed_argument_is_not_callable()
+    function it_should_throws_when_setting_callback_with_uncallable_value()
     {
         $this->shouldThrow('InvalidArgumentException')
-            ->duringSetCallback('foo')
+            ->duringCallback('foo')
         ;
     }
 }

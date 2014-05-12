@@ -44,7 +44,18 @@ class Listener
         $this->paths = $paths;
     }
 
-    public function setEventMask($eventMask)
+    public function to($paths)
+    {
+        if(!is_array($paths)){
+            $paths = array($paths);
+        }
+        foreach($paths as $path){
+            $this->addPath($path);
+        }
+        return $this;
+    }
+
+    public function event($eventMask)
     {
         $state = $eventMask & FilesystemEvent::CREATE
             | $eventMask & FilesystemEvent::DELETE
@@ -57,22 +68,6 @@ class Listener
             ));
         }
         $this->eventMask = $eventMask;
-    }
-
-    public function getEventMask()
-    {
-        return $this->eventMask;
-    }
-
-    public function setPaths($paths)
-    {
-        if(!is_array($paths)){
-            $paths = array($paths);
-        }
-        foreach($paths as $path){
-            $this->addPath($path);
-        }
-        return $this;
     }
 
     public function getPaths()
@@ -98,6 +93,11 @@ class Listener
         return true;
     }
 
+    public function getEventMask()
+    {
+        return $this->eventMask;
+    }
+
     public function setPatterns($pattern)
     {
         if(!is_array($pattern)){
@@ -113,7 +113,7 @@ class Listener
         return $this->patterns;
     }
 
-    public function setIgnores($ignores)
+    public function ignores($ignores)
     {
         if(!is_array($ignores)){
             $ignores = array($ignores);
@@ -129,7 +129,7 @@ class Listener
         return $this->ignores;
     }
 
-    public function setCallback($callback)
+    public function callback($callback)
     {
         if(!is_callable($callback)){
             throw new InvalidArgumentException(sprintf(
@@ -149,6 +149,6 @@ class Listener
 
     public function notifyCallback()
     {
-
     }
+
 }

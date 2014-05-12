@@ -29,12 +29,14 @@ class Listen
     private $latency;
 
     private $listeners;
+    private $listenerInitialized = false;
 
     public function __construct(EventDispatcherInterface $dispatcher=null,AdapterInterface $adapter=null)
     {
         if(is_null($dispatcher)){
             $this->dispatcher = new EventDispatcher();
         }
+
         if(is_null($adapter)){
             $adapter = new PoolingAdapter();
         }
@@ -43,20 +45,44 @@ class Listen
     }
 
     /**
-     * Set directory to initialize
+     * Create a new listener
      *
      * @param       $paths
-     * @internal    param \PhpGuard\Listen\File $paths or Directory to initialize
-     * @internal    param array $options An options for watcher
-     * @internal    param int $eventMask
      * @return      Listener
      */
     public function to($paths)
     {
-        $adapter = $this->adapter;
-
-        $listener = new Listener($paths);
+        // listeners maybe not fully defined yet
+        // so we should not added listener to adapter
+        $listener = new Listener();
+        $listener->to($paths);
         $this->listeners[] = $listener;
         return $listener;
     }
+
+    public function start()
+    {
+        // finally listener is fully defined
+        // ask adapter to initialize this listener
+        $this->initializeListeners();
+
+        return $this;
+    }
+
+    /**
+     * Initialize all registered listener
+     */
+    private function initializeListeners()
+    {
+        if($this->listenerInitialized){
+            return;
+        }
+
+        foreach($this->listeners as $listener){
+            $this->adapter->initialize($listener);
+        }
+
+        $this->listenerInitialized = true;
+    }
+
 }

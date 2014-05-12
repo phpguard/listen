@@ -14,6 +14,7 @@ use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Exception\InvalidArgumentException;
 use PhpGuard\Listen\Listener;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class ResourceManager
@@ -27,20 +28,24 @@ class ResourceManager
      */
     private $adapter;
 
+    private $directories = array();
+
+    private $files = array();
+
     public function __construct(AdapterInterface $adapter)
     {
         $this->adapter = $adapter;
     }
 
-    public function scan(Listener $watcher)
+    public function scan(Listener $listener = null)
     {
-        foreach($watcher->getPaths() as $path){
+        foreach($listener->getPaths() as $path){
             if(is_file($path)){
                 // watching on single file
                 $resource = new FileResource($path);
                 $this->adapter->watch($resource);
             }else{
-                $this->initDir($path,$watcher);
+                $this->initDir($path,$listener);
             }
         }
     }
@@ -53,19 +58,27 @@ class ResourceManager
     public function addResource(ResourceInterface $resource)
     {
         $id = $resource->getID();
-        if(!array_key_exists($id,$this->map)){
-            $this->map[$id] = $resource;
+        if(array_key_exists($id,$this->map)){
+            return;
         }
-
+        $this->map[$id] = $resource;
     }
 
-    private function initDir($path,Listener $watcher = null)
+    private function initDir($path,Listener $listener = null)
     {
         if(!is_dir($path)) return;
         $finder = Finder::create();
         $finder
             ->notPath('vendor')
         ;
+
+        $rootSPL = new SplFileInfo($path,'','');
+        $rootResource = new DirectoryResource($rootSPL);
+
+        $this->addResource($rootResource);
+
+        /* @var \PhpGuard\Listen\Resource\DirectoryResource $lastDir */
+        /* @var \Symfony\Component\Finder\SplFileInfo $spl */
         foreach($finder->in($path) as $spl)
         {
             if(is_dir($spl)){
@@ -73,13 +86,21 @@ class ResourceManager
             }elseif(is_file($spl)){
                 $resource = new FileResource($spl);
             }
-            if(!is_null($watcher)){
-                if(!$watcher->hasPath($spl)){
+
+            if(!is_null($listener)){
+                if(!$listener->hasPath($spl)){
                     continue;
                 }
             }
-            $this->adapter->watch($resource);
+            $parent = dirname($spl);
+            $parentID = md5('d'.$parent);
+            $this->map[$parentID]->addChild($resource);
+
             $this->addResource($resource);
+        }
+
+        foreach($this->map as $resource){
+            $this->adapter->watch($resource);
         }
     }
 

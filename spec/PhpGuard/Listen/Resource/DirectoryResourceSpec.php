@@ -25,7 +25,7 @@ class DirectoryResourceSpec extends ObjectBehavior
     function its_getID_generated_by_md5_directory_name()
     {
         $this->beConstructedWith(getcwd());
-        $this->getID()->shouldReturn(md5(getcwd()));
+        $this->getID()->shouldReturn(md5('d'.getcwd()));
     }
 
     function it_isExists_returns_true_if_the_resource_exists()
@@ -37,14 +37,6 @@ class DirectoryResourceSpec extends ObjectBehavior
     {
         $this->beConstructedWith('/foo/bar');
         $this->shouldNotBeExists();
-    }
-
-    function its_ModificationTime_should_be_mutable()
-    {
-        $timestamp = time();
-
-        $this->setModificationTime($timestamp)->shouldReturn($this);
-        $this->getModificationTime()->shouldReturn($timestamp);
     }
 
     function it_getModificationTime_returns_minus_one_if_the_resource_does_not_exists()

@@ -21,6 +21,8 @@ class FileResource implements ResourceInterface
 
     private $trackingID;
 
+    private $checksum;
+
     public function __construct($resource)
     {
         $this->resource = file_exists($resource) ? realpath($resource):$resource;
@@ -128,6 +130,15 @@ class FileResource implements ResourceInterface
     public function getTrackingID()
     {
         return $this->trackingID;
+    }
+
+    public function getChecksum()
+    {
+        if(!$this->isExists()){
+            return null;
+        }
+
+        return md5(md5_file(realpath($this->resource)).$this->getModificationTime());
     }
 
     /**

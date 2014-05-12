@@ -34,6 +34,8 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
     
     private $listeners = array();
 
+    private $trackMap = array();
+
     public function __construct()
     {
         $this->resourceManager = new ResourceManager($this);
@@ -50,6 +52,10 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
         $this->logger = $logger;
     }
 
+    /**
+     * Initialize a listener
+     * @param   Listener $listener
+     */
     public function initialize(Listener $listener)
     {
         $this->resourceManager->scan($listener);
@@ -73,17 +79,19 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
     public function watch(ResourceInterface $resource)
     {
         $resource->setTrackingID($resource->getID());
+        $this->trackMap[$resource->getID()] = $resource->getChecksum();
     }
 
-    public function unwatch(ResourceInterface $resourceInterface)
+    public function unwatch(ResourceInterface $resource)
     {
-
+        if(!array_key_exists($resource->getID(),$this->trackMap)){
+            return;
+        }
+        unset($this->trackMap);
     }
 
     public function start()
     {
 
     }
-
-
 }
