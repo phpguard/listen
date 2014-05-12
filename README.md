@@ -1,14 +1,14 @@
-#PhpGuard
+# PhpGuard
 
 - [![Master Build Status](https://secure.travis-ci.org/phpguard/listen.png?branch=master)](http://travis-ci.org/phpguard/listen)
 
 The `PhpGuard\Listen` listens to any filesystem events and notifies you about the changes.
 
-##Installing
+## Installing
     $ cd /path/to/project
     $ composer require --dev phpguard/listen "dev-master"
 
-##Usage
+## Usage
 
     use PhpGuard\Listen\Listen;
     use PhpGuard\Listen\Event\FilesystemEvent;
