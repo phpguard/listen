@@ -28,7 +28,7 @@ class ListenSpec extends ObjectBehavior
             ->shouldBeCalled()
         ;
 
-        $watcher = $this->watch(getcwd(),$options);
+        $watcher = $this->to(getcwd(),$options);
         $watcher->getEventMask()->shouldReturn(FilesystemEvent::ALL);
         $watcher->getPath()->shouldReturn(getcwd());
     }

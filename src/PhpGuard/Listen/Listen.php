@@ -49,7 +49,7 @@ class Listen
      * @internal    param string $directory
      * @return      Listener
      */
-    public function watch($path,$options,$eventMask=FilesystemEvent::ALL)
+    public function to($path,$options,$eventMask=FilesystemEvent::ALL)
     {
         $adapter = $this->adapter;
 

@@ -28,5 +28,5 @@ The `PhpGuard\Listen` listens to any filesystem events and notifies you about th
             }
         }
     );
-    $listen->initialize('/foo/bar',$options,FilesystemEvent::All);
+    $listen->to('/foo/bar',$options,FilesystemEvent::All);
     $listen->start();
