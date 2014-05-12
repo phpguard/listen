@@ -9,8 +9,6 @@
  * file that was distributed with this source code.
  */
 
-namespace PhpGuard\Listen\Tests;
-
 use PhpSpec\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 

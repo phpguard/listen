@@ -11,7 +11,7 @@ namespace PhpGuard\Listen;
  * file that was distributed with this source code.
  */
 use PhpGuard\Listen\Adapter\AdapterInterface;
-use PhpGuard\Listen\Adapter\Pooling\PoolingAdapter;
+use PhpGuard\Listen\Adapter\Basic\BasicAdapter;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -29,7 +29,8 @@ class Listen
     private $latency;
 
     private $listeners;
-    private $listenerInitialized = false;
+
+    protected $adapterInitialized = false;
 
     public function __construct(EventDispatcherInterface $dispatcher=null,AdapterInterface $adapter=null)
     {
@@ -38,7 +39,7 @@ class Listen
         }
 
         if(is_null($adapter)){
-            $adapter = new PoolingAdapter();
+            $adapter = new BasicAdapter();
         }
 
         $this->adapter = $adapter;
@@ -57,14 +58,19 @@ class Listen
         $listener = new Listener();
         $listener->to($paths);
         $this->listeners[] = $listener;
+        $this->adapterInitialized = false;
         return $listener;
     }
 
+    /**
+     * @return $this
+     * @codeCoverageIgnore
+     */
     public function start()
     {
         // finally listener is fully defined
         // ask adapter to initialize this listener
-        $this->initializeListeners();
+        $this->initializeAdapters();
 
         return $this;
     }
@@ -72,9 +78,9 @@ class Listen
     /**
      * Initialize all registered listener
      */
-    private function initializeListeners()
+    protected function initializeAdapters()
     {
-        if($this->listenerInitialized){
+        if($this->adapterInitialized){
             return;
         }
 
@@ -82,7 +88,16 @@ class Listen
             $this->adapter->initialize($listener);
         }
 
-        $this->listenerInitialized = true;
+        $this->adapterInitialized = true;
     }
 
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    public function getAdapter()
+    {
+        return $this->adapter;
+    }
 }

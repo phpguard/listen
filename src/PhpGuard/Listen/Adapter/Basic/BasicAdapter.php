@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace PhpGuard\Listen\Adapter\Pooling;
+namespace PhpGuard\Listen\Adapter\Basic;
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Event\FilesystemEvent;
@@ -21,10 +21,10 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 /**
- * Class PoolingAdapter
+ * Class BasicAdapter
  *
  */
-class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
+class BasicAdapter implements AdapterInterface,LoggerAwareInterface
 {
     /**
      * @var LoggerInterface
@@ -86,9 +86,11 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
 
     public function log($message,array $context = array(),$level=LogLevel::DEBUG)
     {
+        // @codeCoverageIgnoreStart
         if(!isset($this->logger)){
             return;
         }
+        // @codeCoverageIgnoreEnd
 
         $this->logger->log($level,$message,$context);
     }
@@ -125,15 +127,7 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
 
     public function unwatch(ResourceInterface $resource)
     {
-        if(!array_key_exists($resource->getID(),$this->trackMap)){
-            return;
-        }
         unset($this->trackMap[$resource->getID()]);
         $this->resourceManager->remove($resource);
-    }
-
-    public function start()
-    {
-
     }
 }

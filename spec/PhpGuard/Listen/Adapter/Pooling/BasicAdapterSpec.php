@@ -1,8 +1,8 @@
 <?php
 
-namespace spec\PhpGuard\Listen\Adapter\Pooling;
+namespace spec\PhpGuard\Listen\Adapter\Basic;
 
-use PhpGuard\Listen\Adapter\Pooling\WatchMap;
+use PhpGuard\Listen\Adapter\Basic\WatchMap;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Listener;
 use PhpSpec\ObjectBehavior;
@@ -10,7 +10,7 @@ use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
-class PoolingAdapterSpec extends ObjectBehavior
+class BasicAdapterSpec extends ObjectBehavior
 {
     function let(WatchMap $watchMap)
     {
@@ -19,7 +19,7 @@ class PoolingAdapterSpec extends ObjectBehavior
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('PhpGuard\Listen\Adapter\Pooling\PoolingAdapter');
+        $this->shouldHaveType('PhpGuard\Listen\Adapter\Basic\PoolingAdapter');
     }
 
     function it_should_implement_the_PSR_LoggerAwareInterface()

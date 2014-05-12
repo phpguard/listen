@@ -13,7 +13,7 @@ namespace PhpGuard\Listen\Tests;
 
 class ListenTest extends \PHPUnit_Framework_TestCase
 {
-    public function testStart()
+    public function testShouldStartProperly()
     {
         $this->markTestIncomplete();
     }
