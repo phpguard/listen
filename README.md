@@ -1,7 +1,8 @@
 # PhpGuard
 
-- [![Latest Stable Version](https://poser.pugx.org/phpguard/listen/v/stable.png)](https://packagist.org/packages/phpguard/listen)
-- [![Master Build Status](https://secure.travis-ci.org/phpguard/listen.png?branch=master)](http://travis-ci.org/phpguard/listen)
+[![Latest Stable Version](https://poser.pugx.org/phpguard/listen/v/stable.png)](https://packagist.org/packages/phpguard/listen)
+[![Master Build Status](https://secure.travis-ci.org/phpguard/listen.png?branch=master)](http://travis-ci.org/phpguard/listen)
+[![Coverage Status](https://coveralls.io/repos/phpguard/listen/badge.png)](https://coveralls.io/r/phpguard/listen)
 
 The `PhpGuard\Listen` listens to any filesystem events and notifies you about the changes.
 
@@ -10,7 +11,7 @@ The `PhpGuard\Listen` listens to any filesystem events and notifies you about th
     $ composer require --dev phpguard/listen "dev-master"
 
 ## Usage
-
+```php
     use PhpGuard\Listen\Listen;
     use PhpGuard\Listen\Event\FilesystemEvent;
     use PhpGuard\Listen\Event\ChangeSetEvent;
@@ -46,3 +47,4 @@ The `PhpGuard\Listen` listens to any filesystem events and notifies you about th
         })
     ;
     $listen->start();
+```

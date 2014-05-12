@@ -2,13 +2,13 @@
     "name": "phpguard/listen",
     "description": "The \"PhpGuard Listen\" listens to any filesystem events and notifies you about the changes.",
     "license": "MIT",
+    "prefer-stable": true,
     "authors": [
         {
             "name": "Anthonius Munthi",
             "email": "me@itstoni.com"
         }
     ],
-    "minimum-stability": "stable",
     "require": {
         "psr/log": "*",
         "symfony/finder": "*"
@@ -19,8 +19,8 @@
         }
     },
     "require-dev": {
-        "phpspec/phpspec": "*",
-        "monolog/monolog": "*",
-        "phpunit/phpunit": "*"
+        "phpspec/phpspec":        "*",
+        "monolog/monolog":        "*",
+        "phpunit/phpunit":        "*"
     }
 }
