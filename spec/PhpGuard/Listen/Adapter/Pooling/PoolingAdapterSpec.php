@@ -46,6 +46,8 @@ class PoolingAdapterSpec extends ObjectBehavior
     {
         $resource->getID()->willReturn('any');
         $resource->getChecksum()->willReturn('any');
+        $resource->getTrackingID()->willReturn(null);
+
         $resource
             ->setTrackingID('any')
             ->shouldBeCalled()

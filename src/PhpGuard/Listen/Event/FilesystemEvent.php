@@ -11,7 +11,7 @@
 
 namespace PhpGuard\Listen\Event;
 
-use PhpGuard\Listen\Resource\SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class FilesystemEvent

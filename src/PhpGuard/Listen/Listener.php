@@ -34,6 +34,8 @@ class Listener
 
     private $callback;
 
+    private $changeset = array();
+
     public function __construct($paths=array())
     {
         $this->eventMask = FilesystemEvent::ALL;
@@ -166,4 +168,13 @@ class Listener
     {
     }
 
+    public function setChangeSet(array $changeSet=array())
+    {
+        $this->changeset = $changeSet;
+    }
+
+    public function getChangeSet()
+    {
+        return $this->changeset;
+    }
 }

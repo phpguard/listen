@@ -12,6 +12,7 @@
 namespace PhpGuard\Listen\Adapter\Pooling;
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
+use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Resource\ResourceManager;
 use PhpGuard\Listen\Listener;
@@ -35,6 +36,10 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
     private $listeners = array();
 
     private $trackMap = array();
+
+    private $changes = array();
+
+    private $inMonitor = false;
 
     public function __construct()
     {
@@ -62,9 +67,21 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
         $this->listeners[] = $listener;
     }
 
-    public function getEvents()
+    /**
+     * @return array
+     */
+    public function evaluate()
     {
-        return array();
+        $this->inMonitor = true;
+        $rm = $this->resourceManager;
+
+        /* @var Listener $listener */
+        foreach($this->listeners as $listener){
+            $this->changes = array();
+            $rm->scan($listener);
+            $listener->setChangeSet($this->changes);
+        }
+        $this->inMonitor = false;
     }
 
     public function log($message,array $context = array(),$level=LogLevel::DEBUG)
@@ -78,8 +95,32 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
 
     public function watch(ResourceInterface $resource)
     {
-        $resource->setTrackingID($resource->getID());
-        $this->trackMap[$resource->getID()] = $resource->getChecksum();
+        if(is_null($resource->getTrackingID())){
+            if($this->inMonitor){
+                $this->changes[] = new FilesystemEvent($resource->getResource(),FilesystemEvent::CREATE);
+            }
+            $resource->setTrackingID($resource->getID());
+            $this->trackMap[$resource->getID()] = $resource->getChecksum();
+        }elseif($this->inMonitor){
+            $trackID = $resource->getID();
+            $checkSum = $this->trackMap[$trackID];
+
+            if($resource->getChecksum()!==$checkSum && $resource->isExists()){
+                // file should be modified
+                $this->changes[] = new FilesystemEvent(
+                    $resource->getResource(),
+                    FilesystemEvent::MODIFY
+                );
+                $checkSum = $resource->getChecksum();
+                $this->trackMap[$trackID] = $checkSum;
+            }elseif(!$resource->isExists()){
+                $this->changes[] = new FilesystemEvent(
+                    $resource->getResource(),
+                    FilesystemEvent::DELETE
+                );
+                $this->unwatch($resource);
+            }
+        }
     }
 
     public function unwatch(ResourceInterface $resource)
@@ -87,7 +128,8 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
         if(!array_key_exists($resource->getID(),$this->trackMap)){
             return;
         }
-        unset($this->trackMap);
+        unset($this->trackMap[$resource->getID()]);
+        $this->resourceManager->remove($resource);
     }
 
     public function start()

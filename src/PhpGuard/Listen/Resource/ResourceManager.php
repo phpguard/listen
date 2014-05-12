@@ -64,6 +64,14 @@ class ResourceManager
         $this->map[$id] = $resource;
     }
 
+    public function remove(ResourceInterface $resource)
+    {
+        if(!$this->hasResource($resource->getID())){
+            return;
+        }
+        unset($this->map[$resource->getID()]);
+    }
+
     private function initDir($path,Listener $listener = null)
     {
         if(!is_dir($path)) return;

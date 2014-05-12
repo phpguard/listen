@@ -19,7 +19,7 @@ interface AdapterInterface
 {
     public function initialize(Listener $watcher);
 
-    public function getEvents();
+    public function evaluate();
 
     public function watch(ResourceInterface $resource);
 

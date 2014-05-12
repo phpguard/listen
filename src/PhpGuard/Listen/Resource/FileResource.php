@@ -25,7 +25,7 @@ class FileResource implements ResourceInterface
 
     public function __construct($resource)
     {
-        $this->resource = file_exists($resource) ? realpath($resource):$resource;
+        $this->resource = $resource;
     }
 
     /**
@@ -74,7 +74,7 @@ class FileResource implements ResourceInterface
             return -1;
         }
         clearstatcache(true,$this->resource);
-        return filemtime($this->resource);
+        return filemtime(realpath($this->resource));
     }
 
     /**

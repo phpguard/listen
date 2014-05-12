@@ -12,7 +12,7 @@
 namespace PhpGuard\Listen\Tests;
 
 
-class TestCase extends \PHPUnit_Framework_TestCase
+abstract class TestCase extends \PHPUnit_Framework_TestCase
 {
     static protected $tmpDir;
 
@@ -30,4 +30,28 @@ class TestCase extends \PHPUnit_Framework_TestCase
     {
         @mkdir($path,0755,true);
     }
+
+    protected function cleanDir($dir)
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $flags = \FilesystemIterator::SKIP_DOTS;
+        $iterator = new \RecursiveDirectoryIterator($dir, $flags);
+        $iterator = new \RecursiveIteratorIterator(
+            $iterator, \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($iterator as $path) {
+            if ($path->isDir()) {
+                rmdir((string) $path);
+            } else {
+                unlink((string) $path);
+            }
+        }
+
+        rmdir($dir);
+    }
+
 } 
