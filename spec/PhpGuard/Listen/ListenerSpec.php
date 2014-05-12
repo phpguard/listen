@@ -6,11 +6,11 @@ use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class WatcherSpec extends ObjectBehavior
+class ListenerSpec extends ObjectBehavior
 {
     function it_is_initializable()
     {
-        $this->shouldHaveType('PhpGuard\Listen\Watcher');
+        $this->shouldHaveType('PhpGuard\Listen\Listener');
     }
 
     function its_event_mask_should_be_mutable()

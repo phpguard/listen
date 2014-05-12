@@ -15,10 +15,10 @@ use PhpGuard\Listen\Exception\InvalidArgumentException;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * Class Watcher
+ * Class Listener
  *
  */
-class Watcher
+class Listener
 {
     private $eventMask;
 
@@ -103,7 +103,7 @@ class Watcher
     {
         if(!is_callable($callback)){
             throw new InvalidArgumentException(sprintf(
-                'Watcher callback should be callable. You passed "%s" type',
+                'Listener callback should be callable. You passed "%s" type',
                 gettype($callback)
             ));
         }

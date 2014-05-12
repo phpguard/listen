@@ -47,13 +47,13 @@ class Listen
      * @param       array $options An options for watcher
      * @param       int $eventMask
      * @internal    param string $directory
-     * @return      Watcher
+     * @return      Listener
      */
     public function watch($path,$options,$eventMask=FilesystemEvent::ALL)
     {
         $adapter = $this->adapter;
 
-        $watcher = new Watcher();
+        $watcher = new Listener();
 
         //$watcher->setOptions($options);
         $watcher->setEventMask($eventMask);

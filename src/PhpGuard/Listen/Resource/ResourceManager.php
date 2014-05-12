@@ -12,7 +12,7 @@
 namespace PhpGuard\Listen\Resource;
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Exception\InvalidArgumentException;
-use PhpGuard\Listen\Watcher;
+use PhpGuard\Listen\Listener;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -32,7 +32,7 @@ class ResourceManager
         $this->adapter = $adapter;
     }
 
-    public function scan(Watcher $watcher)
+    public function scan(Listener $watcher)
     {
         $path = $watcher->getPath();
         if(is_file($path)){
@@ -59,7 +59,7 @@ class ResourceManager
 
     }
 
-    private function initDir($path,Watcher $watcher = null)
+    private function initDir($path,Listener $watcher = null)
     {
         if(!is_dir($path)) return;
         $finder = Finder::create();

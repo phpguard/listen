@@ -14,7 +14,7 @@ namespace PhpGuard\Listen\Adapter\Pooling;
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Resource\ResourceManager;
-use PhpGuard\Listen\Watcher;
+use PhpGuard\Listen\Listener;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -50,7 +50,7 @@ class PoolingAdapter implements AdapterInterface,LoggerAwareInterface
         $this->logger = $logger;
     }
 
-    public function initialize(Watcher $watcher)
+    public function initialize(Listener $watcher)
     {
         $this->resourceManager->scan($watcher);
     }

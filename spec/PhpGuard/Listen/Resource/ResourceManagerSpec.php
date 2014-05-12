@@ -4,13 +4,13 @@ namespace spec\PhpGuard\Listen\Resource;
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Resource\ResourceInterface;
-use PhpGuard\Listen\Watcher;
+use PhpGuard\Listen\Listener;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class ResourceManagerSpec extends ObjectBehavior
 {
-    function let(AdapterInterface $adapter,Watcher $watcher)
+    function let(AdapterInterface $adapter,Listener $watcher)
     {
         $watcher->getPath()->willReturn(__DIR__);
         $watcher->hasPath(Argument::any())->willReturn(true);
@@ -33,7 +33,7 @@ class ResourceManagerSpec extends ObjectBehavior
         $this->hasResource('any')->shouldReturn(true);
     }
 
-    function it_scan_should_process_directory(AdapterInterface $adapter,Watcher $watcher)
+    function it_scan_should_process_directory(AdapterInterface $adapter,Listener $watcher)
     {
         $adapter->watch(Argument::any())
             ->shouldBeCalled()
@@ -47,7 +47,7 @@ class ResourceManagerSpec extends ObjectBehavior
         $this->scan($watcher);
     }
 
-    function it_scan_should_process_file(AdapterInterface $adapter,Watcher $watcher)
+    function it_scan_should_process_file(AdapterInterface $adapter,Listener $watcher)
     {
         $watcher->getPath()
             ->willReturn(__FILE__)

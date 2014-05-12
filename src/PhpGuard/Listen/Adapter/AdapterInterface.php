@@ -13,11 +13,11 @@ namespace PhpGuard\Listen\Adapter;
 
 
 use PhpGuard\Listen\Resource\ResourceInterface;
-use PhpGuard\Listen\Watcher;
+use PhpGuard\Listen\Listener;
 
 interface AdapterInterface
 {
-    public function initialize(Watcher $watcher);
+    public function initialize(Listener $watcher);
 
     public function getEvents();
 

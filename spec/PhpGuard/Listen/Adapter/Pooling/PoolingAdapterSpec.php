@@ -4,7 +4,7 @@ namespace spec\PhpGuard\Listen\Adapter\Pooling;
 
 use PhpGuard\Listen\Adapter\Pooling\WatchMap;
 use PhpGuard\Listen\Resource\ResourceInterface;
-use PhpGuard\Listen\Watcher;
+use PhpGuard\Listen\Listener;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
@@ -27,7 +27,7 @@ class PoolingAdapterSpec extends ObjectBehavior
         $this->shouldImplement('Psr\Log\LoggerAwareInterface');
     }
 
-    function it_should_initialize_watcher(Watcher $watcher,WatchMap $watchMap)
+    function it_should_initialize_watcher(Listener $watcher,WatchMap $watchMap)
     {
         $watcher->getPath()
             ->shouldBeCalled()
