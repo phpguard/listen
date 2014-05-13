@@ -10,9 +10,10 @@ namespace PhpGuard\Listen;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+use PhpGuard\Listen\Event\ChangeSetEvent;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Exception\InvalidArgumentException;
-use Symfony\Component\Finder\SplFileInfo;
+use PhpGuard\Listen\Resource\SplFileInfo;
 
 /**
  * Class Listener
@@ -34,7 +35,7 @@ class Listener
 
     private $callback;
 
-    private $changeset = array();
+    private $changeSet = array();
 
     public function __construct($paths=array())
     {
@@ -90,11 +91,30 @@ class Listener
         }
     }
 
-    public function hasPath(SplFileInfo $file)
+    public function hasPath($path)
+    {
+        $absPath = $path;
+
+        $retVal = false;
+        foreach($this->paths as $baseDir){
+            $baseDirLen = strlen($baseDir);
+            if($baseDir!==substr($absPath,0,$baseDirLen)){
+                continue;
+            }
+
+            $path = SplFileInfo::createFromBaseDir($baseDir,$absPath);
+            $retVal = $this->validateFile($path);
+            if($retVal){
+                return $retVal;
+            }
+        }
+
+        return $retVal;
+    }
+
+    private function validateFile(SplFileInfo $file)
     {
         if(!empty($this->patterns) && $file->isFile()){
-
-
             $retVal = false;
             foreach($this->patterns as $pattern){
                 if(preg_match($pattern,$file->getRealPath())){
@@ -106,11 +126,8 @@ class Listener
                     break;
                 }
             }
-
             return $retVal;
         }
-
-
         return true;
     }
 
@@ -170,15 +187,20 @@ class Listener
 
     public function notifyCallback()
     {
+        $event = new ChangeSetEvent($this->changeSet);
+        array_map(
+            $this->callback,
+            array($event)
+        );
     }
 
     public function setChangeSet(array $changeSet=array())
     {
-        $this->changeset = $changeSet;
+        $this->changeSet = $changeSet;
     }
 
     public function getChangeSet()
     {
-        return $this->changeset;
+        return $this->changeSet;
     }
 }

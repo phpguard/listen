@@ -2,6 +2,8 @@
 
 namespace spec\PhpGuard\Listen\Adapter\Basic;
 
+require_once __DIR__.'/../../MockFileSystem.php';
+
 use PhpGuard\Listen\Adapter\Basic\WatchMap;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Listener;
@@ -10,16 +12,39 @@ use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
+
+use spec\PhpGuard\Listen\MockFileSystem as MFS;
+
 class BasicAdapterSpec extends ObjectBehavior
 {
-    function let(WatchMap $watchMap)
+    private $tmpDir;
+
+    function let(Listener $listener)
     {
-        $this->beConstructedWith($watchMap);
+        MFS::mkdir(MFS::$tmpDir);
+
+        // TODO: move this path into temp dir
+        $listener->getPaths()
+            ->willReturn(array(MFS::$tmpDir))
+        ;
+        $listener->hasPath(Argument::any())
+            ->willReturn(true)
+        ;
+
+        $listener
+            ->getPatterns()
+            ->willReturn(array())
+        ;
+    }
+
+    function letgo()
+    {
+        MFS::cleanDir(MFS::$tmpDir);
     }
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('PhpGuard\Listen\Adapter\Basic\PoolingAdapter');
+        $this->shouldHaveType('PhpGuard\Listen\Adapter\Basic\BasicAdapter');
     }
 
     function it_should_implement_the_PSR_LoggerAwareInterface()
@@ -27,35 +52,24 @@ class BasicAdapterSpec extends ObjectBehavior
         $this->shouldImplement('Psr\Log\LoggerAwareInterface');
     }
 
-    function it_should_initialize_listener(Listener $listener,WatchMap $watchMap)
+    function its_initialize_should_add_listener_to_tracker(Listener $listener)
     {
         $listener->getPaths()
             ->shouldBeCalled()
             ->willReturn(array(__DIR__))
         ;
 
-        $listener->hasPath(Argument::any())
-            ->shouldBeCalled()
-            ->willReturn(true)
-        ;
-
         $this->initialize($listener);
     }
 
-    function it_should_watch_resource_changes(ResourceInterface $resource)
+    function its_getListeners_returns_all_the_registered_listener($listener)
     {
-        $resource->getID()->willReturn('any');
-        $resource->getChecksum()->willReturn('any');
-        $resource->getTrackingID()->willReturn(null);
-
-        $resource
-            ->setTrackingID('any')
-            ->shouldBeCalled()
-        ;
-        $this->watch($resource);
+        $this->getListeners()->shouldReturn(array());
+        $this->initialize($listener);
+        $this->getListeners()->shouldReturn(array($listener));
     }
 
-    function it_should_log_message_with_level_debug_as_default(LoggerInterface $logger)
+    function its_log_should_log_message_with_level_debug_as_default(LoggerInterface $logger)
     {
         $logger->log(LogLevel::DEBUG,'message',array())
             ->shouldBeCalled()
@@ -63,4 +77,47 @@ class BasicAdapterSpec extends ObjectBehavior
         $this->setLogger($logger);
         $this->log('message');
     }
+
+    function its_evaluate_should_notify_listener_callback_after_evaluated(Listener $listener)
+    {
+        $file1 = MFS::$tmpDir.'/file1.txt';
+
+        $listener->getChangeSet()
+            ->willReturn(array('any'))
+        ;
+
+        $listener->notifyCallback()
+            ->shouldBeCalled();
+
+        $listener->setChangeSet(Argument::any())
+            ->shouldBeCalled();
+
+        $this->initialize($listener);
+
+        touch($file1);
+
+        $this->evaluate();
+    }
+
+    function its_evaluate_should_not_notify_listeners_callback_when_changeset_is_empty(Listener $listener)
+    {
+        $listener->getPaths()->willReturn(array(
+            __DIR__
+        ));
+
+        $listener->hasPath(Argument::any())
+            ->willReturn(true);
+        $listener->getChangeSet()
+            ->willReturn(array())
+        ;
+        $listener->setChangeSet(array())
+            ->shouldBeCalled();
+        $this->initialize($listener);
+
+        $listener->notifyCallback()
+            ->shouldNotBeCalled();
+
+        $this->evaluate();
+    }
+
 }

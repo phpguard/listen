@@ -32,21 +32,16 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
      */
     private $logger;
 
-    private $resourceManager;
-    
     private $listeners = array();
 
-    private $trackMap = array();
-
-    private $changes = array();
-
-    private $inMonitor = false;
-
-    private $unchecked = array();
+    /**
+     * @var Tracker
+     */
+    private $tracker;
 
     public function __construct()
     {
-        $this->resourceManager = new ResourceManager($this);
+        $this->tracker = new Tracker();
     }
 
     /**
@@ -60,13 +55,20 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
         $this->logger = $logger;
     }
 
+    public function getListeners()
+    {
+        return $this->listeners;
+    }
+
     /**
      * Initialize a listener
+     *
      * @param   Listener $listener
+     * @return  void
      */
     public function initialize(Listener $listener)
     {
-        $this->resourceManager->scan($listener);
+        $this->tracker->add($listener);
         $this->listeners[] = $listener;
     }
 
@@ -75,20 +77,14 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
      */
     public function evaluate()
     {
-        $this->inMonitor = true;
-        $rm = $this->resourceManager;
-
+        $this->tracker->refresh();
         /* @var Listener $listener */
-        foreach($this->listeners as $listener){
-            $this->changes = array();
-            $this->unchecked = $this->trackMap;
-            $rm->scan($listener);
-            // cleanup untracked changes
-            $this->cleanup($listener);
-
-            $listener->setChangeSet($this->changes);
+        foreach($this->listeners as $listener)
+        {
+            if(count($listener->getChangeSet())>0){
+                $listener->notifyCallback();
+            }
         }
-        $this->inMonitor = false;
     }
 
     public function log($message,array $context = array(),$level=LogLevel::DEBUG)
@@ -100,88 +96,5 @@ class BasicAdapter implements AdapterInterface,LoggerAwareInterface
         // @codeCoverageIgnoreEnd
 
         $this->logger->log($level,$message,$context);
-    }
-
-    public function watch(ResourceInterface $resource)
-    {
-        if(false==$this->inMonitor){
-            $resource->setTrackingID($resource->getID());
-            $this->trackMap[$resource->getID()] = $resource->getChecksum();
-            return;
-        }
-
-        if(is_null($resource->getTrackingID())){
-            $resource->setTrackingID($resource->getID());
-            $this->addChangeSet($resource,new FilesystemEvent(
-                $resource->getResource(),FilesystemEvent::CREATE
-            ));
-            $this->trackMap[$resource->getID()] = $resource->getChecksum();
-        }else{
-            $trackID = $resource->getID();
-            $checkSum = $this->trackMap[$trackID];
-            if(
-                $resource->getChecksum()!==$checkSum
-                && $resource->isExists()
-                // only file change is tracked
-                && $resource instanceof FileResource
-            ){
-                $this->addChangeSet($resource,new FilesystemEvent(
-                    $resource->getResource(),
-                    FilesystemEvent::MODIFY
-                ));
-                $checkSum = $resource->getChecksum();
-                $this->trackMap[$trackID] = $checkSum;
-                unset($this->unchecked[$trackID]);
-            }elseif(!$resource->isExists()){
-                $resource->getParent()->removeChild($resource);
-                $this->addChangeSet($resource,new FilesystemEvent(
-                    $resource->getResource(),
-                    FilesystemEvent::DELETE
-                ));
-
-                $this->unwatch($resource);
-                unset($this->unchecked[$trackID]);
-            }
-        }
-    }
-
-    public function unwatch(ResourceInterface $resource)
-    {
-        unset($this->trackMap[$resource->getID()]);
-        $this->resourceManager->remove($resource);
-    }
-
-    private function cleanup()
-    {
-        // cleanup unchecked files
-        $rm = $this->resourceManager;
-
-        foreach($this->unchecked as $id=>$checksum){
-            $resource = $rm->getResource($id);
-            $path = $resource->getResource();
-            $abs = (string)$path;
-            clearstatcache(true,$abs);
-            if(!$resource->isExists()){
-                $this->addChangeSet($resource, new FilesystemEvent(
-                    $path,FilesystemEvent::DELETE
-                ));
-                $this->unwatch($resource);
-            }
-        }
-    }
-
-    /**
-     * Add changeset to the resource
-     * Only track changeset for file
-     * @param ResourceInterface $resource
-     * @param FilesystemEvent $event
-     */
-    private function addChangeSet(ResourceInterface $resource, FilesystemEvent $event)
-    {
-        if(!$resource instanceof FileResource){
-            return;
-        }
-
-        $this->changes[] = $event;
     }
 }

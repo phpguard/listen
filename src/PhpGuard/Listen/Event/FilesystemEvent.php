@@ -45,10 +45,10 @@ class FilesystemEvent
      * @param int $type
      * @throws \InvalidArgumentException If type is an invalid constant
      */
-    public function __construct(SplFileInfo $resource,$type)
+    public function __construct($resource,$type)
     {
         if(!isset(self::$types[$type])){
-            throw new \InvalidArgumentException('Invalid file system type');
+            throw new \InvalidArgumentException('Invalid file system event type');
         }
         $this->type = $type;
         $this->resource = $resource;

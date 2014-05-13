@@ -50,6 +50,9 @@ abstract class AdapterTest extends TestCase
         usleep($this->getMinimumInterval());
     }
 
+    /**
+     * @group current
+     */
     public function testShouldMonitorBasicFileEvent()
     {
         $adapter = $this->getAdapter();
@@ -66,23 +69,24 @@ abstract class AdapterTest extends TestCase
         touch($file3 = $tmp.'/file3.txt');
 
         $adapter->evaluate();
-        $events = $listener->getChangeSet();
+        $changeSet = $listener->getChangeSet();
 
-        $this->assertCount(3,$events);
-        $this->assertEventHasResource($file1,FilesystemEvent::MODIFY,$events);
-        $this->assertEventHasResource($file2,FilesystemEvent::MODIFY,$events);
-        $this->assertEventHasResource($file3,FilesystemEvent::CREATE,$events);
+        $this->assertCount(3,$changeSet);
+        $this->assertEventHasResource($file1,FilesystemEvent::MODIFY,$changeSet);
+        $this->assertEventHasResource($file2,FilesystemEvent::MODIFY,$changeSet);
+        $this->assertEventHasResource($file3,FilesystemEvent::CREATE,$changeSet);
 
         unlink($file1);
         $adapter->evaluate();
-        $events = $listener->getChangeSet();
+        $changeSet = $listener->getChangeSet();
         //print_r($events);
-        $this->assertCount(1,$events);
-        $this->assertEventHasResource($file1,FilesystemEvent::DELETE,$events);
+
+        $this->assertCount(1,$changeSet);
+        $this->assertEventHasResource($file1,FilesystemEvent::DELETE,$changeSet);
 
         $adapter->evaluate();
-        $events = $listener->getChangeSet();
-        $this->assertCount(0,$events);
+        $changeSet = $listener->getChangeSet();
+        $this->assertCount(0,$changeSet);
     }
 
     public function testShouldMonitorBasicDirectoryEvent()
@@ -124,9 +128,6 @@ abstract class AdapterTest extends TestCase
         $this->assertCount(0,$listener->getChangeSet());
     }
 
-    /**
-     * @group bug
-     */
     public function testShouldMonitorRecursiveDelete()
     {
         $dir = self::$tmpDir;
@@ -154,10 +155,39 @@ abstract class AdapterTest extends TestCase
         $this->assertEventHasResource($fl3,FilesystemEvent::DELETE,$changeSet);
     }
 
-    public function assertEventHasResource($resource,$type,$events)
+    public function testShouldBeAbleToMonitorMultipleListener()
+    {
+        $this->mkdir($dir1 = self::$tmpDir.'/dir1');
+        $this->mkdir($dir2 = self::$tmpDir.'/dir2');
+        touch($fd1 = $dir1.'/fd1.txt');
+        touch($fd2 = $dir2.'/fd1.txt');
+
+        $listener1 = new Listener($dir1);
+        $listener2 = new Listener($dir2);
+        $listener11 = new Listener($dir1);
+
+        $adapter = $this->getAdapter();
+        $adapter->initialize($listener1);
+        $adapter->initialize($listener2);
+        $adapter->initialize($listener11);
+
+        file_put_contents($fd1,'Hello World',LOCK_EX);
+        file_put_contents($fd2,'Hello World',LOCK_EX);
+
+        $adapter->evaluate();
+        $cs1 = $listener1->getChangeSet();
+        $this->assertCount(1,$cs1);
+        $this->assertEventHasResource($fd1,FilesystemEvent::MODIFY,$cs1);
+
+        // should have changeSet same as listener1
+        $cs11 = $listener11->getChangeSet();
+        $this->assertCount(1,$cs11);
+        $this->assertEventHasResource($fd1,FilesystemEvent::MODIFY,$cs1);
+    }
+    public function assertEventHasResource($resource,$type,$changeSet)
     {
         $result = array();
-        foreach ($events as $event) {
+        foreach ($changeSet as $event) {
             if ($resource === (string) $event->getResource()) {
                 $result[] = $event->getType();
             }
@@ -168,6 +198,7 @@ abstract class AdapterTest extends TestCase
             2 => 'MODIFY',
             4 => 'DELETE',
         );
+
 
         if ($result) {
             return $this->assertTrue(in_array($type, $result), sprintf('Expected event: %s, actual: %s ', $types[$type], implode(' or ', array_intersect_key($types, array_flip($result)))));

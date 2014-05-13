@@ -17,11 +17,24 @@ use PhpGuard\Listen\Listener;
 
 interface AdapterInterface
 {
-    public function initialize(Listener $watcher);
+    /**
+     * Initialize new listener
+     *
+     * @param Listener $listener
+     *
+     * @return mixed
+     */
+    public function initialize(Listener $listener);
 
+    /**
+     * Evaluate Filesystem changes
+     *
+     * @return mixed
+     */
     public function evaluate();
 
-    public function watch(ResourceInterface $resource);
-
-    public function unwatch(ResourceInterface $resourceInterface);
+    /**
+     * @return array Listeners for this adapter
+     */
+    public function getListeners();
 }

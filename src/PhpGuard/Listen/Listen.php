@@ -26,7 +26,7 @@ class Listen
 
     private $dispatcher;
 
-    private $latency;
+    private $latency = 1000000;
 
     private $listeners;
 
@@ -72,6 +72,10 @@ class Listen
         // ask adapter to initialize this listener
         $this->initializeAdapters();
 
+        while(true){
+            usleep($this->latency);
+            $this->adapter->evaluate();
+        }
         return $this;
     }
 
