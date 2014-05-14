@@ -15,10 +15,9 @@ namespace PhpGuard\Listen\Resource;
 /**
  * ResourceInterface is the interface that must be implemented by all Resource classes.
  *
- * @author Fabien Potencier <fabien@symfony.com>
  * @author Anthonius Munthi <me@itstoni.com>
  */
-interface ResourceInterface extends \Serializable
+interface ResourceInterface
 {
     /**
      * Returns unique resource ID.
@@ -28,40 +27,11 @@ interface ResourceInterface extends \Serializable
     public function getID();
 
     /**
-     * Set tracking id for a resource
-     * @param   mixed     $id
-     * @return  $this
-     */
-    public function setTrackingID($id);
-
-    /**
-     * Get tracking id for a resource
-     * @return mixed Tracking ID for the resource
-     */
-    public function getTrackingID();
-
-    /**
-     * Returns resource mtime.
-     *
-     * @return integer
-     */
-    public function getModificationTime();
-
-    /**
      * Returns the resource tied to this Resource.
      *
      * @return mixed The resource
      */
     public function getResource();
-
-    /**
-     * Returns true if the resource has not been updated since the given timestamp.
-     *
-     * @param integer $timestamp The last time the resource was loaded
-     *
-     * @return Boolean true if the resource has not been updated, false otherwise
-     */
-    public function isFresh($timestamp);
 
     /**
      * Returns true if the resource exists in the filesystem.
@@ -70,6 +40,10 @@ interface ResourceInterface extends \Serializable
      */
     public function isExists();
 
+    /**
+     * Get checksum for current resource
+     * @return string
+     */
     public function getChecksum();
 
     /**

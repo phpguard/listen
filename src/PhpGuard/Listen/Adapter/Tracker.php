@@ -12,13 +12,16 @@
 namespace PhpGuard\Listen\Adapter;
 
 use PhpGuard\Listen\Exception\InvalidArgumentException;
+use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Resource\DirectoryResource;
 use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\TrackedObject;
 use PhpGuard\Listen\Util\PathUtil;
+
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class Tracker
@@ -31,9 +34,21 @@ class Tracker
      */
     private $listener;
 
-    private $changeSet;
+    private $changeSet = array();
 
     private $map;
+
+    /**
+     * @var AdapterInterface
+     */
+    private $adapter;
+
+    private $fileOnly = true;
+
+    public function __construct(AdapterInterface $adapter)
+    {
+        $this->adapter = $adapter;
+    }
 
     /**
      * @param Listener $listener
@@ -54,7 +69,7 @@ class Tracker
      * @param $trackID
      * @return bool
      */
-    public function hasTrack($trackID)
+    public function has($trackID)
     {
         $absPath = realpath((string)$trackID);
         if(is_dir($absPath) || is_file($absPath)){
@@ -72,12 +87,14 @@ class Tracker
      * @throws \PhpGuard\Listen\Exception\InvalidArgumentException When trackID is not registered
      * @return  TrackedObject
      */
-    public function getTrack($trackID)
+    public function get($trackID)
     {
         $id = $trackID;
+
         if(is_dir($trackID) || is_file($trackID)){
             $id = PathUtil::createPathID($trackID);
         }
+
         if(!isset($this->map[$id])){
             throw new InvalidArgumentException(sprintf(
                 'Track ID: "%s" is not registered',
@@ -91,52 +108,85 @@ class Tracker
      * Add a new TrackedObject into map
      * @param TrackedObject $tracked
      */
-    public function addTrack(TrackedObject $tracked)
+    public function add(TrackedObject $tracked)
     {
         $id = $tracked->getID();
         if(isset($this->map[$id])){
             return;
         }
         $this->map[$id] = $tracked;
+        $this->adapter->watch($tracked);
+    }
+
+    public function remove(TrackedObject $tracked)
+    {
+        unset($this->map[$tracked->getID()]);
+        $this->adapter->unwatch($tracked);
+    }
+
+    public function getTracks()
+    {
+        return $this->map;
     }
 
     /**
-     * @param SplFileInfo $spl
-     *
-     * @author Anthonius Munthi <me@itstoni.com>
+     * @param $path
+     * @throws \PhpGuard\Listen\Exception\InvalidArgumentException
+     * @internal param \Symfony\Component\Finder\SplFileInfo $spl
      */
-    public function checkPath(SplFileInfo $spl)
+    public function checkPath($path)
     {
-        $absPath = $spl->getRealPath();
+        $id = PathUtil::createPathID($path);
 
-        if($spl->isFile()){
-            $id = md5('f'.$absPath);
-        }
-        else{
-            $id = md5('d'.$absPath);
-        }
+        if(!$this->has($id)){
+            if(!is_readable($path)) return;
+            if(!$path instanceof SplFileInfo){
+                $absPath = realpath($path);
+                foreach($this->listener->getPaths() as $baseDir)
+                {
+                    $baseDir = realpath($baseDir);
+                    $baseDirLen = strlen($baseDir);
 
-        if(!$this->hasTrack($id)){
-
-            if($spl->isFile()){
-                $resource = new FileResource($spl);
-            }else{
-                $resource = new DirectoryResource($spl);
+                    if($baseDir === substr($absPath,0,$baseDirLen)){
+                        $path = PathUtil::createSplFileInfo($baseDir,$absPath);
+                        break;
+                    }
+                }
             }
+
+            if(!$path instanceof SplFileInfo){
+                throw new InvalidArgumentException(sprintf(
+                    'Path "%s" can not registered',
+                    $path
+                ));
+            }
+
+            if(!$this->listener->hasPath($path)){
+                return;
+            }
+
+            // path is new
+            if($path->isFile()){
+                $resource = new FileResource($path);
+            }else{
+                $resource = new DirectoryResource($path);
+            }
+
             $tracked = $this->createTrackedObject($resource);
-            $this->addTrack($tracked);
+            $this->add($tracked);
             $this->addChangeSet($tracked,FilesystemEvent::CREATE);
             return;
         }
 
-        $tracked = $this->getTrack($id);
+        $tracked = $this->get($id);
         $origin = $tracked->getResource();
+
         if(
             $tracked->getChecksum()
             !== $origin->getChecksum()
             && $origin->isExists())
         {
-            // file is modified add to changeset
+            // path is modified
             $this->addChangeSet($tracked,FilesystemEvent::MODIFY);
             $tracked->setChecksum($origin->getChecksum());
             unset($this->unchecked[$id]);
@@ -145,107 +195,17 @@ class Tracker
         }
 
         if(!$origin->isExists()){
+            // path is deleted
             $this->addChangeSet($tracked,FilesystemEvent::DELETE);
-            unset($this->map[$id]);
-            unset($this->unchecked[$id]);
+            $this->remove($tracked);
         }
 
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getChangeSet()
-    {
-        return $this->changeSet;
-    }
-
-    /**
-     * Add a new event to changeset
-     *
-     *@param TrackedObject $tracked
-     * @param int             $eventMask
-     */
-    private function addChangeSet(TrackedObject $tracked,$eventMask)
-    {
-        $origin = $tracked->getResource();
-
-        if(!$origin instanceof FileResource){
-            return;
-        }
-
-        $event = new FilesystemEvent($origin->getResource(),$eventMask);
-
-        $this->changeSet[] = $event;
-    }
-
-    /**
-     * Scan listener paths,
-     * and add its resources to map
-     *
-     * @param string $path
-     * @param Listener  $listener
-     */
-    private function scanDir($path)
-    {
-        if(!is_dir($path)) return;
-
-        /* @var \Symfony\Component\Finder\SplFileInfo $spl */
-        $finder = $this->createFinder();
-
-        $rootSPL = new DirectoryResource($path);
-        $rootResource = new DirectoryResource($rootSPL);
-        $rootResource = $this->createTrackedObject($rootResource);
-
-        $this->addTrack($rootResource);
-
-        foreach($finder->in($path) as $spl)
-        {
-            if($spl->isFile()){
-                $resource = new FileResource($spl);
-            }else{
-                $resource = new DirectoryResource($spl);
-            }
-            $trackedResource = $this->createTrackedObject($resource);
-            $this->addTrack($trackedResource);
-        }
-    }
-
-    /**
-     * Create new TrackedObject
-     *
-     * @param   ResourceInterface   $resource
-     * @return  TrackedObject
-     */
-    private function createTrackedObject(ResourceInterface $resource)
-    {
-        $id = $resource->getID();
-
-        if($this->hasTrack($id)){
-            // resource already exists
-            // return existing one
-            return $this->getTrack($id);
-        }
-
-        $tracked = new TrackedObject();
-        $tracked->setID($resource->getID());
-        $tracked->setResource($resource);
-        $tracked->setChecksum($resource->getChecksum());
-
-        $absPath = realpath($resource);
-        $dirName = dirname($absPath);
-        $parentID = md5('d'.$dirName);
-        if($this->hasTrack($parentID)){
-            $this->getTrack($parentID)->getResource()->addChild($resource);
-        }
-
-        return $tracked;
     }
 
     /**
      * @return Finder
      */
-    private function createFinder()
+    public function createFinder()
     {
         $finder = Finder::create();
         $listener = $this->listener;
@@ -259,5 +219,90 @@ class Tracker
         }
 
         return $finder;
+    }
+
+    public function clearChangeSet()
+    {
+        $this->changeSet = array();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getChangeSet()
+    {
+        return $this->changeSet;
+    }
+
+    public function fileOnly($value)
+    {
+        $this->fileOnly = $value;
+    }
+
+    /**
+     * Add a new event to changeset
+     *
+     *@param TrackedObject $tracked
+     * @param int             $eventMask
+     */
+    public function addChangeSet($tracked,$eventMask)
+    {
+        if($tracked instanceof TrackedObject){
+            $path = $tracked->getResource();
+            if($this->fileOnly && !$tracked->getResource() instanceof FileResource){
+                return;
+            }
+        }else{
+            $path = $tracked;
+        }
+        $event = new FilesystemEvent($path,$eventMask);
+        $this->changeSet[] = $event;
+    }
+
+    /**
+     * Scan path and add it to listener
+     * @param string $path
+     */
+    private function scanDir($path)
+    {
+        if(!is_dir($path)) return;
+
+        /* @var \Symfony\Component\Finder\SplFileInfo $spl */
+        $finder = $this->createFinder();
+
+        $rootSPL = new DirectoryResource($path);
+        $rootResource = new DirectoryResource($rootSPL);
+        $rootResource = $this->createTrackedObject($rootResource);
+
+        $this->add($rootResource);
+
+        foreach($finder->in($path) as $spl)
+        {
+            if($spl->isFile()){
+                $resource = new FileResource($spl);
+            }else{
+                $resource = new DirectoryResource($spl);
+            }
+            $trackedResource = $this->createTrackedObject($resource);
+            $this->add($trackedResource);
+        }
+    }
+
+    /**
+     * Create new TrackedObject
+     *
+     * @param   ResourceInterface   $resource
+     * @return  TrackedObject
+     */
+    public function createTrackedObject(ResourceInterface $resource)
+    {
+        $tracked = new TrackedObject();
+        $tracked->setResource($resource);
+        $tracked->setChecksum($resource->getChecksum());
+
+        if(is_null($tracked->getID())){
+            $tracked->setID(PathUtil::createPathID($resource->getResource()));
+        }
+        return $tracked;
     }
 }

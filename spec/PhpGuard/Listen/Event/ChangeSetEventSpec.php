@@ -2,8 +2,7 @@
 
 namespace spec\PhpGuard\Listen\Event;
 
-use PhpGuard\Listen\Event\FilesystemEvent;
-use Symfony\Component\Finder\Finder;
+use PhpGuard\Listen\Listener;
 use Symfony\Component\Finder\SplFileInfo;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
@@ -11,7 +10,7 @@ use Prophecy\Argument;
 class ChangeSetEventSpec extends ObjectBehavior
 {
     private $cInfo;
-    function let($event)
+    function let($event,Listener $listener)
     {
         $subPathName = str_replace(getcwd(),'',__FILE__);
         $subPath = dirname($subPathName);
@@ -21,7 +20,7 @@ class ChangeSetEventSpec extends ObjectBehavior
             $this->cInfo,
         ));
 
-        $this->beConstructedWith(array($event));
+        $this->beConstructedWith($listener,array($event));
     }
 
     function it_is_initializable()
@@ -29,9 +28,9 @@ class ChangeSetEventSpec extends ObjectBehavior
         $this->shouldHaveType('PhpGuard\Listen\Event\ChangeSetEvent');
     }
 
-    function it_getFiles_return_empty_array_by_default()
+    function it_getFiles_return_empty_array_by_default($listener)
     {
-        $this->beConstructedWith(array());
+        $this->beConstructedWith($listener,array());
         $this->getFiles()->shouldReturn(array());
     }
 

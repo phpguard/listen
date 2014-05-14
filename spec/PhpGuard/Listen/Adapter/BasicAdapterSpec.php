@@ -46,14 +46,4 @@ class BasicAdapterSpec extends ObjectBehavior
     {
         $this->shouldHaveType('PhpGuard\Listen\Adapter\BasicAdapter');
     }
-
-    function its_initialize_should_add_listener_to_tracker(Listener $listener)
-    {
-        $listener->getPaths()
-            ->shouldBeCalled()
-            ->willReturn(array(__DIR__))
-        ;
-
-        $this->initialize($listener);
-    }
 }

@@ -18,12 +18,13 @@ class ListenSpec extends ObjectBehavior
         $this->to(__DIR__)->shouldHaveType('PhpGuard\\Listen\\Listener');
     }
 
-    function it_should_initialize_adapter_for_listener()
+    function it_should_choose_best_adapter_to_use()
     {
-        $listener = $this->to(__DIR__);
-        $listener->getAdapter()
-            ->shouldImplement('PhpGuard\\Listen\\Adapter\\AdapterInterface')
-        ;
+        if(function_exists('inotify_init')){
+            $this->getDefaultAdapter()->shouldHaveType('PhpGuard\\Listen\\Adapter\\InotifyAdapter');
+        }else{
+            $this->getDefaultAdapter()->shouldHaveType('PhpGaurd\\Listen\\Adapter\\BasicAdapter');
+        }
     }
 
 

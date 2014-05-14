@@ -7,7 +7,7 @@ use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
+use PhpGuard\Listen\Util\LogLevel;
 
 class ListenerSpec extends ObjectBehavior
 {
@@ -87,16 +87,16 @@ class ListenerSpec extends ObjectBehavior
     function its_latency_should_be_mutable()
     {
         $this->latency(1000)->shouldReturn($this);
-        $this->getLatency()->shouldReturn(1000);
+        $this->getLatency()->shouldReturn(doubleval(1000));
     }
 
     function its_latency_value_should_be_converted_to_microseconds()
     {
-        $this->latency(10000)->shouldReturn($this);
-        $this->getLatency()->shouldReturn(10000);
+        $this->latency(0.01)->shouldReturn($this);
+        $this->getLatency()->shouldReturn(doubleval(10000));
 
         $this->latency(0.25)->shouldReturn($this);
-        $this->getLatency()->shouldReturn((double)250000);
+        $this->getLatency()->shouldReturn(doubleval(250000));
     }
 
     function it_should_implement_the_PSR_LoggerAwareInterface()
@@ -111,5 +111,11 @@ class ListenerSpec extends ObjectBehavior
         ;
         $this->setLogger($logger);
         $this->log('message');
+    }
+
+    function it_throws_when_starting_without_any_paths()
+    {
+        $this->shouldThrow('RuntimeException')
+            ->duringStart();
     }
 }

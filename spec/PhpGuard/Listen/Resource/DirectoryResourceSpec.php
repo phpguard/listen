@@ -39,28 +39,6 @@ class DirectoryResourceSpec extends ObjectBehavior
         $this->shouldNotBeExists();
     }
 
-    function it_getModificationTime_returns_minus_one_if_the_resource_does_not_exists()
-    {
-        $this->beConstructedWith('/foo/bar');
-        $this->getModificationTime()->shouldReturn(-1);
-    }
-
-    function it_isFresh_returns_true_if_the_resource_has_not_changed()
-    {
-        $this->shouldBeFresh(time() + 10);
-    }
-
-    function it_isFresh_returns_false_if_the_resource_has_been_updated()
-    {
-        $this->shouldNotBeFresh(time()-86400);
-    }
-
-    function it_isFresh_returns_false_if_the_resource_does_not_exist()
-    {
-        $this->beConstructedWith('/foo/bar');
-        $this->shouldNotBeFresh(time()+10);
-    }
-
     function it_getResource_returns_the_resource_file_name()
     {
         $this->getResource()->shouldReturn(getcwd());

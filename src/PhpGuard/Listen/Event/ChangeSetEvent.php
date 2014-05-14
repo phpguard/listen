@@ -10,6 +10,7 @@
  */
 
 namespace PhpGuard\Listen\Event;
+use PhpGuard\Listen\Listener;
 
 /**
  * Class ChangeSetEvent
@@ -21,7 +22,12 @@ class ChangeSetEvent
 
     private $files = array();
 
-    public function __construct(array $changeSet = array())
+    /**
+     * @var \PhpGuard\Listen\Listener
+     */
+    private $listener;
+
+    public function __construct(Listener $listener,array $changeSet = array())
     {
         $this->changeSet = $changeSet;
 
@@ -29,6 +35,8 @@ class ChangeSetEvent
         foreach($changeSet as $event){
             $this->files[] = $event->getResource();
         }
+
+        $this->listener = $listener;
     }
 
     public function getFiles()
@@ -39,5 +47,13 @@ class ChangeSetEvent
     public function getEvents()
     {
         return $this->changeSet;
+    }
+
+    /**
+     * @return Listener
+     */
+    public function getListener()
+    {
+        return $this->listener;
     }
 }

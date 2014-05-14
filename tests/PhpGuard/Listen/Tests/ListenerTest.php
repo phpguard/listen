@@ -12,11 +12,14 @@
 namespace PhpGuard\Listen\Tests;
 
 
+use PhpGuard\Listen\Event\ChangeSetEvent;
 use PhpGuard\Listen\Listener;
 use Symfony\Component\Finder\SplFileInfo;
 
 class ListenerTest extends TestCase
 {
+    private $isCallbackCalled = false;
+
     /**
      * @param $pattern
      * @param $path
@@ -25,20 +28,17 @@ class ListenerTest extends TestCase
      */
     public function testShouldOnlyMatchPattern($pattern,$path,$expected=true)
     {
-        $file = self::$tmpDir.'/'.$path;
-        $dirname = dirname($file);
+        $dirname = dirname($path);
+
         $this->mkdir($dirname);
-        touch($file);
+        touch($path);
 
         $listener = new Listener(self::$tmpDir);
 
-        $subPathName = str_replace(self::$tmpDir,'',$file);
-        $subPath = dirname($subPathName);
-
-        $spl = new SplFileInfo($file,$subPath,$subPathName);
+        //$spl = new SplFileInfo($file,$subPath,$subPathName);
         $listener->patterns($pattern);
 
-        $retVal = $listener->hasPath($spl);
+        $retVal = $listener->hasPath($path);
         if($expected){
             $this->assertTrue($retVal);
         }else{
@@ -48,11 +48,43 @@ class ListenerTest extends TestCase
 
     public function getShouldOnlyMatchPattern()
     {
+        parent::setUpBeforeClass();
+        $dir = self::$tmpDir;
+
         return array(
-            array('#.*\.php$#','foo/bar/test.php'),
-            array('#.*\.php$#',self::$tmpDir.'/foo/bar/test.php'),
-            array('#.*\.txt$#','foo/bar/test.php',false),
-            array('#.*\.txt$#','foo/bar',true)
+            array('#.*\.php$#',$dir.'/foo/bar/test.php'),
+            array('#.*\.php$#',$dir.'/foo/bar/test.php'),
+            array('#.*\.txt$#',$dir.'/foo/bar/test.php',false),
+            array('#.*\.txt$#',$dir.'/foo/bar',true),
+            array('#.*$#','/tmp/foobar.txt',false)
         );
+    }
+
+    public function testShouldListenFilesystemEvent()
+    {
+        $this->isCallbackCalled = false;
+        self::cleanDir($dir = self::$tmpDir);
+        self::mkdir($dir);
+
+        $listener = new Listener();
+        $listener
+            ->to($dir)
+            ->latency(0.01)
+            ->callback(array($this,'listenerCallback'))
+        ;
+
+        $listener->alwaysNotify(true);
+        $listener->start();
+
+        touch($file = $dir.'/foo.txt');
+        file_put_contents($file,'HELLO WORLD AJA YA');
+
+        $this->assertTrue($this->isCallbackCalled);
+    }
+
+    public function listenerCallback(ChangeSetEvent $event)
+    {
+        $event->getListener()->stop();
+        $this->isCallbackCalled = true;
     }
 }

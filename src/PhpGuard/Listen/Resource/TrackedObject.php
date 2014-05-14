@@ -63,7 +63,7 @@ class TrackedObject
     }
 
     /**
-     * @return ResourceInterface
+     * @return mixed
      */
     public function getResource()
     {

@@ -14,9 +14,11 @@ use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Event\ChangeSetEvent;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Exception\InvalidArgumentException;
+use PhpGuard\Listen\Exception\RuntimeException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use PhpGuard\Listen\Util\LogLevel;
+use Symfony\Component\Config\Resource\DirectoryResource;
 use Symfony\Component\Finder\SplFileInfo;
 use PhpGuard\Listen\Util\PathUtil;
 
@@ -58,6 +60,10 @@ class Listener implements LoggerAwareInterface
      * @var LoggerInterface
      */
     private $logger;
+
+    private $listen = true;
+
+    private $alwaysNotify = false;
 
     public function __construct($paths=array())
     {
@@ -143,17 +149,17 @@ class Listener implements LoggerAwareInterface
      */
     public function latency($latency)
     {
-        if($latency < 1){
+        if($latency <= 1){
             $latency = $latency * 1000000;
         }
-        $this->latency = $latency;
+        $this->latency = doubleval($latency);
         return $this;
     }
 
     public function start()
     {
         if(count($this->paths) < 1){
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf(
                     'Can not start with an empty directory. '
                     .'You have to set directory to watch first with Listener::to()'
@@ -161,15 +167,27 @@ class Listener implements LoggerAwareInterface
             );
         }
 
-        $this->adapter->evaluate();
-        $this->changeSet = $this->adapter->getChangeSet();
-
-        if(!count($this->changeSet) > 0){
-            return;
+        if(!isset($this->adapter)){
+            $this->adapter = Listen::getDefaultAdapter();
+            $this->adapter->initialize($this);
+        }
+        if($this->logger){
+            $this->adapter->setLogger($this->logger);
         }
 
+        $this->listen = true;
 
-        $this->notifyCallback();
+        while($this->listen){
+            usleep($this->latency);
+            $this->adapter->evaluate();
+            $this->changeSet = $this->adapter->getChangeSet();
+            $this->notify();
+        }
+    }
+
+    public function stop()
+    {
+        $this->listen = false;
     }
 
     /**
@@ -266,14 +284,22 @@ class Listener implements LoggerAwareInterface
         return $this->callback;
     }
 
-    public function notifyCallback()
+    public function notify()
     {
-        $event = new ChangeSetEvent($this->changeSet);
-
+        if(!$this->alwaysNotify && empty($this->changeSet)){
+            return;
+        }
+        $event = new ChangeSetEvent($this,$this->changeSet);
         array_map(
             $this->callback,
             array($event)
         );
+    }
+
+    public function alwaysNotify($value)
+    {
+        $this->alwaysNotify = $value;
+        return $this;
     }
 
     public function setChangeSet(array $changeSet=array())
@@ -296,6 +322,8 @@ class Listener implements LoggerAwareInterface
     public function setLogger(LoggerInterface $logger)
     {
         $this->logger = $logger;
+
+        return $this;
     }
 
     public function log($message,$level=LogLevel::DEBUG,$context=array())

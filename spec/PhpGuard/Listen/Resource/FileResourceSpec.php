@@ -49,20 +49,4 @@ class FileResourceSpec extends ObjectBehavior
         @unlink($this->file);
         $this->shouldNotBeExists();
     }
-
-    function it_isFresh_returns_true_if_the_resource_has_not_changed()
-    {
-        $this->shouldBeFresh(time()+10);
-    }
-
-    function it_isFresh_returns_false_if_the_resource_has_been_updated()
-    {
-        $this->shouldNotBeFresh(time()-86400);
-    }
-
-    function it_isFresh_returns_false_if_the_resource_does_not_exist()
-    {
-        $this->beConstructedWith('/foo/bar');
-        $this->shouldNotBeFresh(time());
-    }
 }

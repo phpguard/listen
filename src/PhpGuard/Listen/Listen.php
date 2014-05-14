@@ -12,10 +12,7 @@ namespace PhpGuard\Listen;
  */
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Adapter\BasicAdapter;
-use PhpGuard\Listen\Adapter\Inotify\InotifyAdapter;
-use PhpGuard\Listen\Event\FilesystemEvent;
-use Symfony\Component\EventDispatcher\EventDispatcher;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use PhpGuard\Listen\Adapter\InotifyAdapter;
 
 /**
  * Class Listen
@@ -35,17 +32,24 @@ class Listen
         // so we should not added listener to adapter
         $listener = new Listener();
 
-        if(function_exists('inotify_init')){
-            $adapter = new BasicAdapter();
-        }else{
-            $adapter = new BasicAdapter();
-        }
-
         $listener
-            ->setAdapter($adapter)
             ->to($paths)
         ;
 
         return $listener;
+    }
+
+    /**
+     * @return  AdapterInterface
+     * @author Anthonius Munthi <me@itstoni.com>
+     */
+    static public function getDefaultAdapter()
+    {
+        if(function_exists('inotify_init')){
+            $adapter = new InotifyAdapter();
+        }else{
+            $adapter = new BasicAdapter();
+        }
+        return $adapter;
     }
 }

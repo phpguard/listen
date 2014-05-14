@@ -76,6 +76,7 @@ abstract class AdapterTest extends TestCase
         $changeSet = $listener->getChangeSet();
 
         $this->assertCount(3,$changeSet);
+
         $this->assertEventHasResource($file1,FilesystemEvent::MODIFY,$changeSet);
         $this->assertEventHasResource($file2,FilesystemEvent::MODIFY,$changeSet);
         $this->assertEventHasResource($file3,FilesystemEvent::CREATE,$changeSet);
@@ -94,6 +95,9 @@ abstract class AdapterTest extends TestCase
         $this->assertCount(0,$changeSet);
     }
 
+    /**
+     * @group current
+     */
     public function testShouldMonitorBasicDirectoryEvent()
     {
         $tmp = self::$tmpDir;
@@ -127,6 +131,7 @@ abstract class AdapterTest extends TestCase
 
         $listener->start();
         $changeset = $listener->getChangeSet();
+
         $this->assertCount(1,$changeset);
         $this->assertEventHasResource($f3,FilesystemEvent::DELETE,$changeset);
 
@@ -224,6 +229,9 @@ abstract class AdapterTest extends TestCase
         $this->assertEventHasResource($fphp2,FilesystemEvent::CREATE,$changeSet);
     }
 
+    /**
+     * @group current
+     */
     public function testShouldNotTrackIgnoredDir()
     {
         $dir = self::$tmpDir;
@@ -233,9 +241,8 @@ abstract class AdapterTest extends TestCase
         $this->mkdir($helloWorld = $dir.'/hello/world');
 
         $listener1 = new TestedListener($dir);
-        $listener1->setAdapter($this->getAdapter())
-            ->ignores('#foo/bar.*$#')
-        ;
+        $listener1->ignores('#foo/bar.*$#');
+        $listener1->setAdapter($this->getAdapter());
 
         touch($f1 = $foo.'/foo.txt');
         touch($f2 = $fooBar.'/bar.txt');
@@ -244,6 +251,7 @@ abstract class AdapterTest extends TestCase
 
         $listener1->start();
         $changeSet = $listener1->getChangeSet();
+
         $this->assertCount(3,$changeSet);
         $this->assertEventHasResource($f1,FilesystemEvent::CREATE,$changeSet);
         $this->assertEventHasResource($f3,FilesystemEvent::CREATE,$changeSet);
@@ -270,7 +278,7 @@ abstract class AdapterTest extends TestCase
             return $this->assertTrue(in_array($type, $result), sprintf('Expected event: %s, actual: %s ', $types[$type], implode(' or ', array_intersect_key($types, array_flip($result)))));
         }
 
-        $this->fail(sprintf('Can not find "%s" change event', $resource));
+        $this->fail(sprintf('Can not find "%s" %s event', $resource,$types[$type]));
     }
     
 }

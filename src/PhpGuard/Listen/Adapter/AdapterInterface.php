@@ -11,11 +11,12 @@
 
 namespace PhpGuard\Listen\Adapter;
 
-
-use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Listener;
+use PhpGuard\Listen\Resource\TrackedObject;
+use PhpGuard\Listen\Util\LogLevel;
+use Psr\Log\LoggerAwareInterface;
 
-interface AdapterInterface
+interface AdapterInterface extends LoggerAwareInterface
 {
     /**
      * Initialize new listener
@@ -34,13 +35,14 @@ interface AdapterInterface
     public function evaluate();
 
     /**
-     * @return array Listeners for this adapter
-     */
-    public function getListener();
-
-    /**
      * Get latest changeset from adapter.
      * @return array An array of FileystemEvent object
      */
     public function getChangeSet();
+
+    public function watch(TrackedObject $tracked);
+
+    public function unwatch(TrackedObject $tracked);
+
+    public function log($message,array $context=array(),$level = LogLevel::DEBUG);
 }
