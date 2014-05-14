@@ -2,10 +2,12 @@
 
 namespace spec\PhpGuard\Listen;
 
+use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Event\FilesystemEvent;
-use PhpGuard\Listen\Resource\SplFileInfo;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 class ListenerSpec extends ObjectBehavior
 {
@@ -38,7 +40,6 @@ class ListenerSpec extends ObjectBehavior
             ->duringAddPath('/foo/bar');
     }
 
-
     function its_getPatterns_returns_empty_array_by_default()
     {
         $this->getPatterns()->shouldReturn(array());
@@ -50,15 +51,17 @@ class ListenerSpec extends ObjectBehavior
         $this->getPatterns()->shouldReturn(array('any'));
     }
 
-    function its_getIgnores_returns_an_empty_array_by_default()
+    function its_getIgnores_returns_default_ignored_files()
     {
-        $this->getIgnores()->shouldReturn(array());
+        $this->getIgnores()->shouldReturn(array(
+            'vendor'
+        ));
     }
 
     function its_ignores_should_be_mutable()
     {
         $this->ignores('any')->shouldReturn($this);
-        $this->getIgnores()->shouldReturn(array('any'));
+        $this->getIgnores()->shouldReturn(array('vendor','any'));
     }
 
     function it_should_set_callback()
@@ -73,5 +76,40 @@ class ListenerSpec extends ObjectBehavior
         $this->shouldThrow('InvalidArgumentException')
             ->duringCallback('foo')
         ;
+    }
+
+    function its_adapter_should_be_mutable(AdapterInterface $adapter)
+    {
+        $this->setAdapter($adapter)->shouldReturn($this);
+        $this->getAdapter()->shouldReturn($adapter);
+    }
+
+    function its_latency_should_be_mutable()
+    {
+        $this->latency(1000)->shouldReturn($this);
+        $this->getLatency()->shouldReturn(1000);
+    }
+
+    function its_latency_value_should_be_converted_to_microseconds()
+    {
+        $this->latency(10000)->shouldReturn($this);
+        $this->getLatency()->shouldReturn(10000);
+
+        $this->latency(0.25)->shouldReturn($this);
+        $this->getLatency()->shouldReturn((double)250000);
+    }
+
+    function it_should_implement_the_PSR_LoggerAwareInterface()
+    {
+        $this->shouldImplement('Psr\Log\LoggerAwareInterface');
+    }
+
+    function its_should_log_message_with_level_debug_as_default(LoggerInterface $logger)
+    {
+        $logger->log(LogLevel::DEBUG,'message',array())
+            ->shouldBeCalled()
+        ;
+        $this->setLogger($logger);
+        $this->log('message');
     }
 }

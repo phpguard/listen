@@ -6,11 +6,11 @@ use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
-class TrackedResourceSpec extends ObjectBehavior
+class TrackedObjectSpec extends ObjectBehavior
 {
     function it_is_initializable()
     {
-        $this->shouldHaveType('PhpGuard\Listen\Resource\TrackedResource');
+        $this->shouldHaveType('PhpGuard\Listen\Resource\TrackedObject');
     }
 
     function its_id_should_be_mutable()
@@ -19,15 +19,10 @@ class TrackedResourceSpec extends ObjectBehavior
         $this->getID()->shouldReturn('any');
     }
 
-    function its_OriginalResource_should_be_mutable(ResourceInterface $resource)
+    function its_resource_should_be_mutable(ResourceInterface $resource)
     {
-        $this->setOriginalResource($resource);
-        $this->getOriginalResource()->shouldReturn($resource);
-    }
-
-    function its_listeners_should_be_the_SplObjecStorage_object()
-    {
-        $this->getListeners()->shouldHaveType('SplObjectStorage');
+        $this->setResource($resource);
+        $this->getResource()->shouldReturn($resource);
     }
 
     function its_checksum_should_be_mutable()

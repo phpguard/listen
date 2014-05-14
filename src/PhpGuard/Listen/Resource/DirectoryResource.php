@@ -144,7 +144,7 @@ class DirectoryResource implements ResourceInterface
 
     public function getChecksum()
     {
-        return md5(spl_object_hash($this).count($this->childs));
+        return md5(spl_object_hash($this));
     }
 
     public function addChild(ResourceInterface $resource)
@@ -167,5 +167,4 @@ class DirectoryResource implements ResourceInterface
     {
         return $this->parent;
     }
-
 }

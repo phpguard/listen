@@ -3,7 +3,7 @@
 namespace spec\PhpGuard\Listen\Event;
 
 use PhpGuard\Listen\Event\FilesystemEvent;
-use PhpGuard\Listen\Resource\SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 

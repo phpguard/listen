@@ -3,18 +3,19 @@
 namespace spec\PhpGuard\Listen\Event;
 
 use PhpGuard\Listen\Event\FilesystemEvent;
-use PhpGuard\Listen\Resource\SplFileInfo;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
 class ChangeSetEventSpec extends ObjectBehavior
 {
-    private $cSet;
     private $cInfo;
-    private $cEvent;
     function let($event)
     {
-        $this->cInfo = SplFileInfo::createFromBaseDir(getcwd(),__FILE__);
+        $subPathName = str_replace(getcwd(),'',__FILE__);
+        $subPath = dirname($subPathName);
+        $this->cInfo = new SplFileInfo(__FILE__,$subPath,$subPathName);
 
         $event->beADoubleOf('PhpGuard\Listen\Event\FilesystemEvent',array(
             $this->cInfo,

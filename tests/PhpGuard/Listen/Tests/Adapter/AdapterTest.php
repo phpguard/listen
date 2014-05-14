@@ -11,12 +11,20 @@
 
 namespace PhpGuard\Listen\Tests\Adapter;
 
-
 use PhpGuard\Listen\Adapter\AdapterInterface;
 use PhpGuard\Listen\Event\FilesystemEvent;
-use PhpGuard\Listen\Listen;
 use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Tests\TestCase;
+
+class TestedListener extends Listener
+{
+    public function start()
+    {
+        $this->getAdapter()->evaluate();
+        $this->setChangeSet($this->getAdapter()->getChangeSet());
+    }
+}
+
 
 abstract class AdapterTest extends TestCase
 {
@@ -50,23 +58,21 @@ abstract class AdapterTest extends TestCase
         usleep($this->getMinimumInterval());
     }
 
-
     public function testShouldMonitorBasicFileEvent()
     {
-        $adapter = $this->getAdapter();
 
         $tmp = self::$tmpDir;
         touch($file1 = $tmp.'/file1.txt');
         touch($file2 = $tmp.'/file2.txt');
 
-        $listener = new Listener($tmp);
-        $adapter->initialize($listener);
+        $listener = new TestedListener($tmp);
+        $listener->setAdapter($this->getAdapter());
 
         file_put_contents($file1,'Hello World',LOCK_EX);
         file_put_contents($file2,'Foo Bar',LOCK_EX);
         touch($file3 = $tmp.'/file3.txt');
 
-        $adapter->evaluate();
+        $listener->start();
         $changeSet = $listener->getChangeSet();
 
         $this->assertCount(3,$changeSet);
@@ -75,14 +81,15 @@ abstract class AdapterTest extends TestCase
         $this->assertEventHasResource($file3,FilesystemEvent::CREATE,$changeSet);
 
         unlink($file1);
-        $adapter->evaluate();
+
+        $listener->start();
         $changeSet = $listener->getChangeSet();
         //print_r($events);
 
         $this->assertCount(1,$changeSet);
         $this->assertEventHasResource($file1,FilesystemEvent::DELETE,$changeSet);
 
-        $adapter->evaluate();
+        $listener->start();
         $changeSet = $listener->getChangeSet();
         $this->assertCount(0,$changeSet);
     }
@@ -91,16 +98,16 @@ abstract class AdapterTest extends TestCase
     {
         $tmp = self::$tmpDir;
 
-        $listener = new Listener($tmp);
-        $adapter = $this->getAdapter();
-        $adapter->initialize($listener);
+        $listener = new TestedListener($tmp);
+        $listener->setAdapter($this->getAdapter());
 
         $this->mkdir($dir1 = $tmp.'/dir');
         $this->mkdir($l1 = $dir1.'/l1');
 
         touch($f1 = $dir1.'/dir1.txt');
         touch($f2 = $l1.'/l1.txt');
-        $adapter->evaluate();
+
+        $listener->start();
         $changeset = $listener->getChangeSet();
 
         $this->assertCount(2,$changeset);
@@ -109,7 +116,8 @@ abstract class AdapterTest extends TestCase
 
         $this->mkdir($l2 = $l1.'/l2');
         touch($f3 = $l2.'/l2.txt');
-        $adapter->evaluate();
+
+        $listener->start();
         $changeset = $listener->getChangeSet();
         $this->assertCount(1,$changeset);
         $this->assertEventHasResource($f3,FilesystemEvent::CREATE,$changeset);
@@ -117,12 +125,12 @@ abstract class AdapterTest extends TestCase
         unlink($f3);
         rmdir($l2);
 
-        $adapter->evaluate();
+        $listener->start();
         $changeset = $listener->getChangeSet();
         $this->assertCount(1,$changeset);
         $this->assertEventHasResource($f3,FilesystemEvent::DELETE,$changeset);
 
-        $adapter->evaluate();
+        $listener->start();
         $this->assertCount(0,$listener->getChangeSet());
     }
 
@@ -137,15 +145,12 @@ abstract class AdapterTest extends TestCase
         touch($fl2 = $l2.'/l2.txt');
         touch($fl3 = $l3.'/l3.txt');
 
-        $listener = new Listener($dir);
-        $adapter = $this->getAdapter();
-        $adapter->initialize($listener);
-
-        //file_put_contents($fl2,"HELLO WORLD",LOCK_EX);
+        $listener = new TestedListener($dir);
+        $listener->setAdapter($this->getAdapter());
 
         //$this->sleep();
         $this->cleanDir($dir);
-        $adapter->evaluate();
+        $listener->start();
         $changeSet = $listener->getChangeSet();
         $this->assertCount(3,$changeSet);
         $this->assertEventHasResource($fl1,FilesystemEvent::DELETE,$changeSet);
@@ -153,102 +158,96 @@ abstract class AdapterTest extends TestCase
         $this->assertEventHasResource($fl3,FilesystemEvent::DELETE,$changeSet);
     }
 
-    public function testShouldBeAbleToMonitorMultipleListener()
+    public function testShouldOnlyTrackFilteredPattern()
     {
-        $this->mkdir($dir1 = self::$tmpDir.'/dir1');
-        $this->mkdir($dir2 = self::$tmpDir.'/dir2');
-        touch($fd1 = $dir1.'/fd1.txt');
-        touch($fd2 = $dir2.'/fd2.txt');
+        $dir = self::$tmpDir;
+        $this->mkdir($foo        = $dir.'/foo');
+        $this->mkdir($fooBar     = $dir.'/foo/bar');
+        $this->mkdir($hello      = $dir.'/hello');
+        $this->mkdir($helloWorld = $dir.'/hello/world');
 
-        $listener1 = new Listener($dir1);
-        $listener11 = new Listener($dir1);
-        $listener2 = new Listener($dir2);
+        $global = new TestedListener($dir);
+        $global->setAdapter($this->getAdapter())
+            ->patterns('#.*\.txt$#')
+        ;
 
+        $php1 = new TestedListener($dir);
+        $php1->setAdapter($this->getAdapter())
+            ->patterns('#^foo\/.*\.php$#')
+            ->patterns('#^bar\/.*\.php$#')
+            ->patterns('#^hello\/.*\.php$#')
+            ->patterns('#^world\/.*\.php$#')
+        ;
 
-        $adapter = $this->getAdapter();
-        $adapter->initialize($listener1);
-        $adapter->initialize($listener11);
-        $adapter->initialize($listener2);
+        $php2 = new TestedListener($dir);
+        $php2->setAdapter($this->getAdapter())
+            ->patterns('#^foo\/.*\.php$#')
+        ;
 
-        file_put_contents($fd1,'Hello World',LOCK_EX);
-        file_put_contents($fd2,'Hello World',LOCK_EX);
-        touch($fd21 = $dir2.'/fd1.txt');
+        touch($f1 = $foo.'/foo.txt');
+        touch($f2 = $fooBar.'/bar.txt');
+        touch($f3 = $hello.'/hello.txt');
+        touch($f4 = $helloWorld.'/world.txt');
 
-        $adapter->evaluate();
-        $cs1 = $listener1->getChangeSet();
-        $this->assertCount(1,$cs1);
-        $this->assertEventHasResource($fd1,FilesystemEvent::MODIFY,$cs1);
+        touch($fphp1 = $foo.'/foo.php');
+        touch($fphp2 = $fooBar.'/bar.php');
+        touch($fphp3 = $hello.'/hello.php');
+        touch($fphp4 = $helloWorld.'/world.php');
 
-        // should have changeSet same as listener1
-        $cs11 = $listener11->getChangeSet();
-        $this->assertCount(1,$cs11);
-        $this->assertEventHasResource($fd1,FilesystemEvent::MODIFY,$cs1);
+        // should not match this file
+        touch($try1 = $dir.'/test.php');
 
-        $cs2 = $listener2->getChangeSet();
-        $this->assertCount(2,$cs2);
-        $this->assertEventHasResource($fd2,FilesystemEvent::MODIFY,$cs2);
-        $this->assertEventHasResource($fd21,FilesystemEvent::CREATE,$cs2);
+        $global->start();
+
+        // should match all file
+        $changeSet = $global->getChangeSet();
+        $this->assertCount(4,$changeSet);
+        $this->assertEventHasResource($f1,FilesystemEvent::CREATE,$global->getChangeSet());
+        $this->assertEventHasResource($f2,FilesystemEvent::CREATE,$global->getChangeSet());
+        $this->assertEventHasResource($f3,FilesystemEvent::CREATE,$global->getChangeSet());
+        $this->assertEventHasResource($f4,FilesystemEvent::CREATE,$global->getChangeSet());
+
+        // should match all php file
+        $php1->start();
+        $changeSet = $php1->getChangeSet();
+        $this->assertCount(4,$changeSet);
+        $this->assertEventHasResource($fphp1,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($fphp2,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($fphp3,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($fphp4,FilesystemEvent::CREATE,$changeSet);
+
+        // should match only foo/*.php
+        $php2->start();
+        $changeSet = $php2->getChangeSet();
+        $this->assertCount(2,$changeSet);
+        $this->assertEventHasResource($fphp1,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($fphp2,FilesystemEvent::CREATE,$changeSet);
     }
 
-    /**
-     * @group current
-     */
-    public function testShouldTrackFilteredDirectory()
+    public function testShouldNotTrackIgnoredDir()
     {
-        $this->mkdir($dir = self::$tmpDir.'/dir');
-        $this->mkdir($dirFoo = $dir.'/foo');
-        $this->mkdir($dirFooBar = $dir.'/foo/bar');
-        $this->mkdir($dirHello = $dir.'/hello');
-        $this->mkdir($dirHelloWorld = $dir.'/hello/world');
-        $this->mkdir($try = $dir.'/try');
+        $dir = self::$tmpDir;
+        $this->mkdir($foo        = $dir.'/foo');
+        $this->mkdir($fooBar     = $dir.'/foo/bar');
+        $this->mkdir($hello      = $dir.'/hello');
+        $this->mkdir($helloWorld = $dir.'/hello/world');
 
+        $listener1 = new TestedListener($dir);
+        $listener1->setAdapter($this->getAdapter())
+            ->ignores('#foo/bar.*$#')
+        ;
 
-        $fooListener = new Listener($dir);
-        $fooListener->patterns('#^foo\/.*\.txt$#');
-        $helloListener = new Listener($dir);
-        $helloListener->patterns('#^hello\/.*\.txt$#');
-        $phpListener = new Listener($dir);
-        $phpListener->patterns('#^foo\/.*\.php$#');
-        $phpListener->patterns('#^hello\/.*\.php$#');
+        touch($f1 = $foo.'/foo.txt');
+        touch($f2 = $fooBar.'/bar.txt');
+        touch($f3 = $hello.'/hello.txt');
+        touch($f4 = $helloWorld.'/world.txt');
 
-        $adapter = $this->getAdapter();
-        $adapter->initialize($fooListener);
-        $adapter->initialize($helloListener);
-        $adapter->initialize($phpListener);
-
-        touch($fooF1 = $dirFoo.'/foo.txt');
-        touch($fooF2 = $dirFooBar.'/bar.txt');
-        touch($php1 = $dirFoo.'/php1.php');
-        touch($php2 = $dirFooBar.'/php2.php');
-
-        touch($helloF1 = $dirHello.'/hello.txt');
-        touch($helloF2 = $dirHelloWorld.'/world.txt');
-        touch($php3 = $dirHello.'/php3.php');
-        touch($php4 = $dirHelloWorld.'/php4.php');
-
-        // should not be detected
-        touch($try1 = $dir.'/hello.txt');
-        touch($try2 = $dir.'/hello.php');
-        touch($try3 = $dir.'/foo');
-        touch($try4 = $dir.'/bar');
-
-        $adapter->evaluate();
-        $fooCS = $fooListener->getChangeSet();
-        $this->assertCount(2,$fooCS);
-        $this->assertEventHasResource($fooF1,FilesystemEvent::CREATE,$fooCS);
-        $this->assertEventHasResource($fooF2,FilesystemEvent::CREATE,$fooCS);
-
-        $helloCS = $helloListener->getChangeSet();
-        $this->assertCount(2,$helloCS);
-        $this->assertEventHasResource($helloF1,FilesystemEvent::CREATE,$helloCS);
-        $this->assertEventHasResource($helloF2,FilesystemEvent::CREATE,$helloCS);
-
-        $phpCS  = $phpListener->getChangeSet();
-        $this->assertCount(4,$phpCS);
-        $this->assertEventHasResource($php1,FilesystemEvent::CREATE,$phpCS);
-        $this->assertEventHasResource($php2,FilesystemEvent::CREATE,$phpCS);
-        $this->assertEventHasResource($php3,FilesystemEvent::CREATE,$phpCS);
-        $this->assertEventHasResource($php4,FilesystemEvent::CREATE,$phpCS);
+        $listener1->start();
+        $changeSet = $listener1->getChangeSet();
+        $this->assertCount(3,$changeSet);
+        $this->assertEventHasResource($f1,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($f3,FilesystemEvent::CREATE,$changeSet);
+        $this->assertEventHasResource($f4,FilesystemEvent::CREATE,$changeSet);
     }
 
     protected function assertEventHasResource($resource,$type,$changeSet)

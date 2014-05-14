@@ -30,7 +30,7 @@ class FilesystemEvent
     private $type;
 
     /**
-     * @var \PhpGuard\Listen\Resource\SplFileInfo
+     * @var \Symfony\Component\Finder\SplFileInfo
      */
     private $resource;
 

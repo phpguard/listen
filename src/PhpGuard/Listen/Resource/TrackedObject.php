@@ -14,10 +14,10 @@ use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Resource\ResourceInterface;
 
 /**
- * Class TrackedResource
+ * Class TrackedObject
  *
  */
-class TrackedResource
+class TrackedObject
 {
     /**
      * @var string
@@ -28,25 +28,14 @@ class TrackedResource
      * Original resource to track
      * @var ResourceInterface
      */
-    private $originalResource;
-
-    /**
-     * Listeners which listen this resource
-     * @var \SplObjectStorage
-     */
-    private $listeners;
+    private $resource;
 
     private $checksum;
-
-    public function __construct()
-    {
-        $this->listeners = new \SplObjectStorage();
-    }
 
     /**
      * @param string $id
      *
-     * @return TrackedResource
+     * @return TrackedObject
      */
     public function setId($id)
     {
@@ -65,34 +54,26 @@ class TrackedResource
     /**
      * @param \PhpGuard\Listen\Resource\ResourceInterface $originalResource
      *
-     * @return TrackedResource
+     * @return TrackedObject
      */
-    public function setOriginalResource(ResourceInterface $originalResource)
+    public function setResource(ResourceInterface $originalResource)
     {
-        $this->originalResource = $originalResource;
+        $this->resource = $originalResource;
         return $this;
     }
 
     /**
      * @return ResourceInterface
      */
-    public function getOriginalResource()
+    public function getResource()
     {
-        return $this->originalResource;
-    }
-
-    /**
-     * @return \SplObjectStorage
-     */
-    public function getListeners()
-    {
-        return $this->listeners;
+        return $this->resource;
     }
 
     /**
      * @param mixed $checksum
      *
-     * @return TrackedResource
+     * @return TrackedObject
      */
     public function setChecksum($checksum)
     {

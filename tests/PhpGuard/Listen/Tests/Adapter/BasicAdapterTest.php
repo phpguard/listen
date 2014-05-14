@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace PhpGuard\Listen\Tests\Adapter\Basic;
+namespace PhpGuard\Listen\Tests\Adapter;
 
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
-use PhpGuard\Listen\Adapter\Basic\BasicAdapter;
+use PhpGuard\Listen\Adapter\BasicAdapter;
 use PhpGuard\Listen\Tests\Adapter\AdapterTest;
 
 class BasicAdapterTest extends AdapterTest

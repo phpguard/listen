@@ -21,10 +21,8 @@ class FileResource implements ResourceInterface
 
     private $trackingID;
 
-    private $checksum;
-
     /**
-     * @var ResourceInterface
+     * @var DirectoryResource
      */
     private $parent;
 
@@ -147,16 +145,6 @@ class FileResource implements ResourceInterface
         return md5(md5_file(realpath($this->resource)).$this->getModificationTime());
     }
 
-    public function setParent(ResourceInterface $parent)
-    {
-        $this->parent = $parent;
-    }
-
-    public function getParent()
-    {
-        return $this->parent;
-    }
-
     /**
      * Returns a string representation of the Resource.
      *
@@ -165,5 +153,15 @@ class FileResource implements ResourceInterface
     public function __toString()
     {
         return (string)$this->resource;
+    }
+
+    public function setParent(DirectoryResource $parent)
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent()
+    {
+        return $this->parent;
     }
 }

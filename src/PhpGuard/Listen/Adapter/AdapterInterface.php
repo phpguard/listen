@@ -36,5 +36,11 @@ interface AdapterInterface
     /**
      * @return array Listeners for this adapter
      */
-    public function getListeners();
+    public function getListener();
+
+    /**
+     * Get latest changeset from adapter.
+     * @return array An array of FileystemEvent object
+     */
+    public function getChangeSet();
 }

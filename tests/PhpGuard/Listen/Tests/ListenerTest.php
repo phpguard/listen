@@ -13,7 +13,7 @@ namespace PhpGuard\Listen\Tests;
 
 
 use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Resource\SplFileInfo;
+use Symfony\Component\Finder\SplFileInfo;
 
 class ListenerTest extends TestCase
 {
@@ -32,7 +32,10 @@ class ListenerTest extends TestCase
 
         $listener = new Listener(self::$tmpDir);
 
-        $spl = SplFileInfo::createFromBaseDir(self::$tmpDir,$file);
+        $subPathName = str_replace(self::$tmpDir,'',$file);
+        $subPath = dirname($subPathName);
+
+        $spl = new SplFileInfo($file,$subPath,$subPathName);
         $listener->patterns($pattern);
 
         $retVal = $listener->hasPath($spl);
