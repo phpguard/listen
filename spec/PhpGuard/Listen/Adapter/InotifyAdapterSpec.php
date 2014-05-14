@@ -5,10 +5,10 @@ namespace spec\PhpGuard\Listen\Adapter;
 require_once realpath(__DIR__.'/../MockFileSystem.php');
 
 use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Util\LogLevel;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use spec\PhpGuard\Listen\MockFileSystem as MFS;
 
 class InotifyAdapterSpec extends ObjectBehavior

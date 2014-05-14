@@ -17,8 +17,7 @@ use PhpGuard\Listen\Exception\InvalidArgumentException;
 use PhpGuard\Listen\Exception\RuntimeException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
-use PhpGuard\Listen\Util\LogLevel;
-use Symfony\Component\Config\Resource\DirectoryResource;
+use Psr\Log\LogLevel;
 use Symfony\Component\Finder\SplFileInfo;
 use PhpGuard\Listen\Util\PathUtil;
 

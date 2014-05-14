@@ -15,10 +15,6 @@ use PhpGuard\Listen\Resource\ResourceManager;
 use PhpGuard\Listen\Resource\TrackedObject;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Util\LogLevel;
-
-use Psr\Log\LoggerInterface;
-
 use Symfony\Component\Finder\SplFileInfo;
 
 /**

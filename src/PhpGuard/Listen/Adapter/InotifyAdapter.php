@@ -12,12 +12,8 @@ namespace PhpGuard\Listen\Adapter;
  */
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Resource\DirectoryResource;
 use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\TrackedObject;
-use PhpGuard\Listen\Util\LogLevel;
-use PhpGuard\Listen\Util\PathUtil;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class InotifyAdapter

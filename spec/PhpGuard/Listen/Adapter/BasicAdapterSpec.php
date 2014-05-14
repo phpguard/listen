@@ -4,13 +4,9 @@ namespace spec\PhpGuard\Listen\Adapter;
 
 require_once __DIR__.'/../MockFileSystem.php';
 
-use PhpGuard\Listen\Adapter\Basic\WatchMap;
-use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Listener;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 
 
 use spec\PhpGuard\Listen\MockFileSystem as MFS;

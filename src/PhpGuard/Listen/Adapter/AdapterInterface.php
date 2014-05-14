@@ -13,7 +13,7 @@ namespace PhpGuard\Listen\Adapter;
 
 use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Resource\TrackedObject;
-use PhpGuard\Listen\Util\LogLevel;
+use Psr\Log\LogLevel;
 use Psr\Log\LoggerAwareInterface;
 
 interface AdapterInterface extends LoggerAwareInterface

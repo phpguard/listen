@@ -7,7 +7,7 @@ use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
-use PhpGuard\Listen\Util\LogLevel;
+use Psr\Log\LogLevel;
 
 class ListenerSpec extends ObjectBehavior
 {
