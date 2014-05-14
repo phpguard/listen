@@ -18,7 +18,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerInterface;
 use PhpGuard\Listen\Util\LogLevel;
 use Symfony\Component\Finder\SplFileInfo;
-use PhpGuard\Listen\Util\Path;
+use PhpGuard\Listen\Util\PathUtil;
 
 /**
  * Class Listener
@@ -234,7 +234,7 @@ class Listener implements LoggerAwareInterface
             }
 
             if(!$path instanceof SplFileInfo){
-                $path = Path::createSplFileInfo($baseDir,$absPath);
+                $path = PathUtil::createSplFileInfo($baseDir,$absPath);
             }
             $retVal = $this->validateFile($path);
 

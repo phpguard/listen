@@ -13,10 +13,10 @@ namespace PhpGuard\Listen\Util;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
- * Class Path
+ * Class PathUtil
  *
  */
-class Path
+class PathUtil
 {
 
     /**
@@ -26,7 +26,7 @@ class Path
      * @param   string  $path       A file/directory name
      * @return  SplFileInfo
      */
-    public function createSplFileInfo($baseDir, $path)
+    static public function createSplFileInfo($baseDir, $path)
     {
         $absPath = realpath($path);
         $baseDirLen = strlen($baseDir);
@@ -41,4 +41,25 @@ class Path
 
         return new SplFileInfo($absPath,$subPath,$subPathName);
     }
+
+    /**
+     * Generates ID from directory/file name.
+     *
+     * @param string $dirOrFile
+     * @return string
+     */
+    static public function createPathID($dirOrFile)
+    {
+        $absPath = realpath($dirOrFile);
+        if(is_dir($absPath)){
+            $id = md5('d'.$absPath);
+        }elseif(is_file($absPath)){
+            $id = md5('f'.$absPath);
+        }else{
+            // if not dir or file, returns original $dirOrFile value
+            $id = md5($dirOrFile);
+        }
+        return $id;
+    }
+
 }

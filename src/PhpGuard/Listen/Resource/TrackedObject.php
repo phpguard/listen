@@ -37,7 +37,7 @@ class TrackedObject
      *
      * @return TrackedObject
      */
-    public function setId($id)
+    public function setID($id)
     {
         $this->id = $id;
         return $this;
@@ -46,7 +46,7 @@ class TrackedObject
     /**
      * @return string
      */
-    public function getId()
+    public function getID()
     {
         return $this->id;
     }

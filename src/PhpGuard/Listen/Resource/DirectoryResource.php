@@ -27,8 +27,6 @@ class DirectoryResource implements ResourceInterface
 
     private $trackingID;
 
-    private $checksum;
-
     private $childs = array();
 
     private $parent;
