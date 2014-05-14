@@ -29,7 +29,7 @@ $listener = $listen->to('/path/to/project') // returns the listener objects
             echo sprintf(
                 'mode:"%s", paths: "%s",
                 $fse->getHumanType,
-                $fse->getResource()->getRelativePath(),
+                $fse->getTrack()->getRelativePath(),
             );
         }
     });
