@@ -23,7 +23,7 @@ class ListenSpec extends ObjectBehavior
         if(function_exists('inotify_init')){
             $this->getDefaultAdapter()->shouldHaveType('PhpGuard\\Listen\\Adapter\\InotifyAdapter');
         }else{
-            $this->getDefaultAdapter()->shouldHaveType('PhpGaurd\\Listen\\Adapter\\BasicAdapter');
+            $this->getDefaultAdapter()->shouldHaveType('PhpGuard\\Listen\\Adapter\\BasicAdapter');
         }
     }
 
