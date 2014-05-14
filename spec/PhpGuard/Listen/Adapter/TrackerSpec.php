@@ -3,17 +3,16 @@
 namespace spec\PhpGuard\Listen\Adapter;
 
 require_once realpath(__DIR__."/../MockFileSystem.php");
+
 use PhpGuard\Listen\Adapter\AdapterInterface;
-use PhpGuard\Listen\Adapter\BasicAdapter;
-use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Resource\ResourceInterface;
 use PhpGuard\Listen\Resource\TrackedObject;
 use PhpGuard\Listen\Util\PathUtil;
+use PhpGuard\Listen\Resource\FileResource;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use Prophecy\Exception\Prediction\FailedPredictionException;
-use Symfony\Component\Config\Resource\FileResource;
+
 use Symfony\Component\Finder\SplFileInfo;
 
 use spec\PhpGuard\Listen\MockFileSystem as MFS;
