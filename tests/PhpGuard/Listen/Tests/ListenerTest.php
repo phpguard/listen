@@ -19,6 +19,7 @@ use Symfony\Component\Finder\SplFileInfo;
 class ListenerTest extends TestCase
 {
     private $isCallbackCalled = false;
+    private $callbackCount = 1;
 
     /**
      * @param $pattern
@@ -60,7 +61,7 @@ class ListenerTest extends TestCase
         );
     }
 
-    public function testShouldListenFilesystemEvent()
+    public function testShouldStartProperly()
     {
         $this->isCallbackCalled = false;
         self::cleanDir($dir = self::$tmpDir);
@@ -76,15 +77,19 @@ class ListenerTest extends TestCase
         $listener->alwaysNotify(true);
         $listener->start();
 
-        touch($file = $dir.'/foo.txt');
-        file_put_contents($file,'HELLO WORLD AJA YA');
-
         $this->assertTrue($this->isCallbackCalled);
+        $this->assertEquals(2,$this->callbackCount);
     }
 
     public function listenerCallback(ChangeSetEvent $event)
     {
-        $event->getListener()->stop();
+        if($this->callbackCount == 2){
+            touch($file = self::$tmpDir.'/foo.txt');
+            file_put_contents($file,'Hello World');
+            $event->getListener()->stop();
+            return;
+        }
         $this->isCallbackCalled = true;
+        $this->callbackCount++;
     }
 }

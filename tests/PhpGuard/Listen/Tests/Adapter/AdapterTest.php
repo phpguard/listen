@@ -12,6 +12,7 @@
 namespace PhpGuard\Listen\Tests\Adapter;
 
 use PhpGuard\Listen\Adapter\AdapterInterface;
+use PhpGuard\Listen\Event\ChangeSetEvent;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
 use PhpGuard\Listen\Tests\TestCase;
@@ -20,8 +21,13 @@ class TestedListener extends Listener
 {
     public function start()
     {
-        $this->getAdapter()->evaluate();
-        $this->setChangeSet($this->getAdapter()->getChangeSet());
+        $this->latency(1000);
+        $this->alwaysNotify(true);
+        $this->callback(function(ChangeSetEvent $event){
+            // always stop after each start
+            $event->getListener()->stop();
+        });
+        parent::start();
     }
 }
 
@@ -93,9 +99,6 @@ abstract class AdapterTest extends TestCase
         $this->assertCount(0,$changeSet);
     }
 
-    /**
-     * @group current
-     */
     public function testShouldMonitorBasicDirectoryEvent()
     {
         $tmp = self::$tmpDir;
@@ -227,9 +230,6 @@ abstract class AdapterTest extends TestCase
         $this->assertEventHasResource($fphp2,FilesystemEvent::CREATE,$changeSet);
     }
 
-    /**
-     * @group current
-     */
     public function testShouldNotTrackIgnoredDir()
     {
         $dir = self::$tmpDir;

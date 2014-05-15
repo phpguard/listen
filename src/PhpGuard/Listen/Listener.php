@@ -33,7 +33,7 @@ class Listener implements LoggerAwareInterface
      * Set paths to listen
      * @var array
      */
-    private $paths;
+    private $paths = array();
 
     private $patterns = array();
 
@@ -67,12 +67,7 @@ class Listener implements LoggerAwareInterface
     public function __construct($paths=array())
     {
         $this->eventMask = FilesystemEvent::ALL;
-
-        if(!is_array($paths)){
-            $paths = array($paths);
-        }
-
-        $this->paths = $paths;
+        $this->to($paths);
     }
 
     public function to($paths)
@@ -238,29 +233,28 @@ class Listener implements LoggerAwareInterface
 
     public function hasPath($path)
     {
-        $absPath = $path;
-
-        $retVal = false;
-
-        foreach($this->paths as $baseDir){
-            $baseDirLen = strlen($baseDir);
-
-            if($baseDir!==substr($absPath,0,$baseDirLen)){
-                // not own this path, should continue
-                continue;
-            }
-
-            if(!$path instanceof SplFileInfo){
-                $path = PathUtil::createSplFileInfo($baseDir,$absPath);
-            }
-            $retVal = $this->validateFile($path);
-
-            if($retVal){
-                return $retVal;
+        if(!$path instanceof SplFileInfo){
+            $path = $this->createResource($path);
+            if(false===$path){
+                return false;
             }
         }
 
-        return $retVal;
+        if(!empty($this->patterns) && $path->isFile()){
+            $retVal = false;
+            foreach($this->patterns as $pattern){
+                if(preg_match($pattern,$path->getRealPath())){
+                    $retVal = true;
+                    break;
+                }
+                if(preg_match($pattern,$path->getRelativePathname())){
+                    $retVal = true;
+                    break;
+                }
+            }
+            return $retVal;
+        }
+        return true;
     }
 
     public function getEventMask()
@@ -301,11 +295,6 @@ class Listener implements LoggerAwareInterface
         return $this;
     }
 
-    public function setChangeSet(array $changeSet=array())
-    {
-        $this->changeSet = $changeSet;
-    }
-
     public function getChangeSet()
     {
         return $this->changeSet;
@@ -330,22 +319,26 @@ class Listener implements LoggerAwareInterface
         $this->logger->log($level,$message,$context);
     }
 
-    private function validateFile(SplFileInfo $file)
+    public function createResource($path)
     {
-        if(!empty($this->patterns) && $file->isFile()){
-            $retVal = false;
-            foreach($this->patterns as $pattern){
-                if(preg_match($pattern,$file->getRealPath())){
-                    $retVal = true;
-                    break;
-                }
-                if(preg_match($pattern,$file->getRelativePathname())){
-                    $retVal = true;
-                    break;
-                }
-            }
-            return $retVal;
+        if(!is_readable($path)){
+            throw new InvalidArgumentException(sprintf(
+                'The path "%s" is not exists or not readable.',
+                $path
+            ));
         }
-        return true;
+
+        foreach($this->paths as $baseDir){
+            $baseDirLen = strlen($baseDir);
+
+            if($baseDir!==substr($path,0,$baseDirLen)){
+                // not own this path, should continue
+                continue;
+            }
+            $path = PathUtil::createSplFileInfo($baseDir,$path);
+            return $path;
+        }
+
+        return false;
     }
 }

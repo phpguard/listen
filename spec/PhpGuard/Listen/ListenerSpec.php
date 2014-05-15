@@ -2,15 +2,35 @@
 
 namespace spec\PhpGuard\Listen;
 
+require_once __DIR__.'/MockFileSystem.php';
+
 use PhpGuard\Listen\Adapter\AdapterInterface;
+use PhpGuard\Listen\Event\ChangeSetEvent;
 use PhpGuard\Listen\Event\FilesystemEvent;
+use PhpGuard\Listen\Listener;
+use PhpGuard\Listen\Util\PathUtil;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
+use spec\PhpGuard\Listen\MockFileSystem as mfs;
+
 class ListenerSpec extends ObjectBehavior
 {
+    static $tmpDir;
+
+    function let()
+    {
+        mfs::mkdir(mfs::$tmpDir);
+        $this->alwaysNotify(true);
+    }
+
+    function letgo()
+    {
+        mfs::cleanDir(mfs::$tmpDir);
+    }
+
     function it_is_initializable()
     {
         $this->shouldHaveType('PhpGuard\Listen\Listener');
@@ -104,7 +124,7 @@ class ListenerSpec extends ObjectBehavior
         $this->shouldImplement('Psr\Log\LoggerAwareInterface');
     }
 
-    function its_should_log_message_with_level_debug_as_default(LoggerInterface $logger)
+    function it_should_log_message_with_level_debug_as_default(LoggerInterface $logger)
     {
         $logger->log(LogLevel::DEBUG,'message',array())
             ->shouldBeCalled()
@@ -117,5 +137,114 @@ class ListenerSpec extends ObjectBehavior
     {
         $this->shouldThrow('RuntimeException')
             ->duringStart();
+    }
+
+    function its_createResource_returns_SplFileInfo_object_for_the_path()
+    {
+        mfs::mkdir($root = MFS::$tmpDir.'/root');
+        mfs::mkdir($dir1 = $root.'/dir1/subdir');
+        mfs::mkdir($dir2 = $root.'/dir2/subdir');
+        touch($file1 = $dir1.'/file1.php');
+        touch($file2 = $dir2.'/file2.php');
+
+        $this->to($root.'/dir1');
+        $this->to($root.'/dir2');
+
+        $spl = $this->createResource($file1);
+        $spl->getRelativePath()
+            ->shouldReturn('subdir');
+        $spl->getRelativePathname()->shouldReturn('subdir/file1.php');
+
+        $spl = $this->createResource($file2);
+        $spl->getRelativePath()
+            ->shouldReturn('subdir');
+        $spl->getRelativePathname()->shouldReturn('subdir/file2.php');
+    }
+
+    function its_createResource_returns_false_if_path_is_outside_watched_list()
+    {
+        mfs::mkdir($root = MFS::$tmpDir.'/root');
+        touch($file1 = mfs::$tmpDir.'/file1.php');
+        $this->to($root);
+
+        $this->createResource(__FILE__)->shouldReturn(false);
+        $this->createResource($file1)->shouldReturn(false);
+    }
+
+    function its_createResource_throws_when_the_path_is_invalid()
+    {
+        $this->shouldThrow()
+            ->duringCreateResource('FooBar');
+    }
+
+    function its_hasPath_returns_true_if_the_path_is_watched()
+    {
+        mfs::mkdir($watched = mfs::$tmpDir.'/watched');
+
+        touch($file1 = $watched.'/foo.txt');
+        $this->to($watched);
+        $this->hasPath($file1)->shouldReturn(true);
+    }
+
+    function its_hasPath_returns_false_if_the_path_is_not_watched()
+    {
+        mfs::mkdir($watched = mfs::$tmpDir.'/watched');
+        mfs::mkdir($unwatched = mfs::$tmpDir.'/unwatched');
+
+        touch($file1 = $watched.'/foo.txt');
+        touch($file2 = $unwatched.'/bar.txt');
+
+        $this->to($watched);
+
+        $this->hasPath($file1)->shouldReturn(true);
+        $this->hasPath($file2)->shouldReturn(false);
+    }
+
+    function its_hasPath_should_check_against_pattern()
+    {
+        mfs::mkdir($dir = mfs::$tmpDir.'/root/subdir');
+        $this->to(mfs::$tmpDir.'/root');
+
+        touch($fphp = $dir.'/foobar.php');
+        touch($ftxt = $dir.'/foobar.txt');
+
+        $this->patterns('#.*\.php$#');
+
+        $this->hasPath($fphp)->shouldReturn(true);
+        $this->hasPath($ftxt)->shouldReturn(false);
+
+        $this->patterns('#^subdir\/.*\.txt$#');
+        $this->hasPath($fphp)->shouldReturn(true);
+        $this->hasPath($ftxt)->shouldReturn(true);
+    }
+
+    function it_should_start_evaluate_filesystem_event_properly(
+        AdapterInterface $adapter,
+        LoggerInterface $logger,
+        FilesystemEvent $event
+    )
+    {
+        $this->callback(function(ChangeSetEvent $event){
+            static $count=0;
+            $event->getListener()->stop();
+            $count++;
+        });
+
+        $adapter->setLogger($logger)
+            ->shouldBeCalled();
+        $adapter->initialize($this)
+            ->shouldBeCalled();
+        $adapter->evaluate()
+            ->shouldBeCalled();
+        $adapter->getChangeSet()
+            ->willReturn(array($event))
+            ->shouldBeCalled();
+
+        $this->setLogger($logger);
+        $this->to(mfs::$tmpDir);
+        $this->setAdapter($adapter);
+        $this->latency(10000);
+        $this->start();
+        $this->getChangeset()->shouldContain($event);
     }
 }

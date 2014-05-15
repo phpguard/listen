@@ -88,6 +88,7 @@ class InotifyAdapter extends BaseAdapter
     public function watch(TrackedObject $tracked)
     {
         $path = $tracked->getResource();
+
         //$tracked->setID($id);
         if($tracked->getResource() instanceof FileResource){
             return;
@@ -125,21 +126,18 @@ class InotifyAdapter extends BaseAdapter
         $resource = $track->getResource();
         $path = $resource.DIRECTORY_SEPARATOR.$wdName;
 
-        if($wdMask & IN_ISDIR){
+        if(0!==($wdMask & IN_ISDIR)){
             if(is_dir($path)){
                 // directory not exists should recursive scan directory
                 $this->trackNewDir($path);
-                return;
             }elseif(is_dir($resource)){
                 // directory exists let tracker check
                 $tracker->checkPath($resource);
-                return;
             }elseif(!is_dir($resource)){
                 // directory is deleted let inotify unwatch
                 $this->unwatch($track);
-                return;
             }
-
+            return;
         }
 
         $wdMask &= ~IN_ISDIR;
@@ -147,6 +145,7 @@ class InotifyAdapter extends BaseAdapter
         switch ($wdMask) {
             case IN_MODIFY:
             case IN_ATTRIB:
+            case IN_CLOSE_WRITE:
                 $event =  FilesystemEvent::MODIFY;
                 break;
             case IN_CREATE:
@@ -169,7 +168,7 @@ class InotifyAdapter extends BaseAdapter
                 $tracker->addChangeSet($path,$event);
             }
         }
-        elseif($wdMask & IN_IGNORED){
+        elseif(0!==($wdMask & IN_IGNORED)){
             if($resource->isExists()){
                 $this->watch($track);
             }

@@ -36,5 +36,18 @@ class InotifyAdapterTest extends AdapterTest
     {
         return 0;
     }
+
+    /**
+     * @group current
+     */
+    public function testFooBar()
+    {
+        $listener = new TestedListener();
+        $listener->to($dir = self::$tmpDir);
+        $listener->setAdapter($this->getAdapter());
+
+        touch($file = $dir.'/foobar.txt');
+        $listener->start();
+    }
 }
  
