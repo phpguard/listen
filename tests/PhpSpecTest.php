@@ -25,8 +25,8 @@ class PhpSpecTest extends \PHPUnit_Framework_TestCase
             $app->setAutoExit(false);
             $app->setCatchExceptions(true);
             $input = new StringInput('run --ansi');
-            $app->run($input);
-            $this->assertTrue(true);
+            $return = $app->run($input);
+            $this->assertEquals(0,$return,'PhpGuard Spec Testing is not passed.');
         }catch(\Exception $e){
             throw $e;
         }
