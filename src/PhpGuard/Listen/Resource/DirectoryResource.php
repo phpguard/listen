@@ -51,16 +51,16 @@ class DirectoryResource implements ResourceInterface
         return $this->resource;
     }
 
+    public function getChecksum()
+    {
+        return md5(spl_object_hash($this));
+    }
+
     /**
      * @return string Realpath of the resource
      */
     public function __toString()
     {
         return (string)$this->resource;
-    }
-
-    public function getChecksum()
-    {
-        return md5(spl_object_hash($this));
     }
 }

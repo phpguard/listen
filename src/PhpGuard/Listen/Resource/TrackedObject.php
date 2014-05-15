@@ -10,8 +10,6 @@
  */
 
 namespace PhpGuard\Listen\Resource;
-use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Resource\ResourceInterface;
 
 /**
  * Class TrackedObject

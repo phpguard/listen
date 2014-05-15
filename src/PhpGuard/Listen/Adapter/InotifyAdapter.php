@@ -12,6 +12,7 @@ namespace PhpGuard\Listen\Adapter;
  */
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
+use PhpGuard\Listen\Resource\DirectoryResource;
 use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\TrackedObject;
 
@@ -31,11 +32,11 @@ class InotifyAdapter extends BaseAdapter
 
     private $modified = array();
 
+    private $wathedPaths = array();
+
     public function __construct()
     {
-        // TODO: add IN_ATTRIB again if possible
-
-        $this->inotifyEventMask = IN_MODIFY | IN_DELETE | IN_CREATE | IN_MOVE | IN_MOVE_SELF;
+        $this->inotifyEventMask = IN_ATTRIB | IN_MODIFY | IN_DELETE | IN_CREATE | IN_MOVE | IN_MOVE_SELF;
         $this->inotify = inotify_init();
         stream_set_blocking($this->inotify,0);
 
@@ -52,6 +53,7 @@ class InotifyAdapter extends BaseAdapter
     public function initialize(Listener $listener)
     {
         $this->tracker->initialize($listener);
+        $this->wathedPaths = $listener->getPaths();
     }
 
     /**
@@ -98,7 +100,12 @@ class InotifyAdapter extends BaseAdapter
 
     public function unwatch(TrackedObject $tracked)
     {
+        $path = (string)$tracked->getResource();
+        if($tracked->getResource()->isExists()){
+            return;
+        }
         @inotify_rm_watch($this->inotify,$tracked->getID());
+        unset($this->inotifyMap[$tracked->getID()]);
         return parent::unwatch($tracked);
     }
 
@@ -122,20 +129,24 @@ class InotifyAdapter extends BaseAdapter
             if(is_dir($path)){
                 // directory not exists should recursive scan directory
                 $this->trackNewDir($path);
+                return;
             }elseif(is_dir($resource)){
                 // directory exists let tracker check
                 $tracker->checkPath($resource);
+                return;
             }elseif(!is_dir($resource)){
                 // directory is deleted let inotify unwatch
                 $this->unwatch($track);
+                return;
             }
-            return;
+
         }
 
         $wdMask &= ~IN_ISDIR;
         $event = 0;
         switch ($wdMask) {
             case IN_MODIFY:
+            case IN_ATTRIB:
                 $event =  FilesystemEvent::MODIFY;
                 break;
             case IN_CREATE:
@@ -157,6 +168,18 @@ class InotifyAdapter extends BaseAdapter
             }else{
                 $tracker->addChangeSet($path,$event);
             }
+        }
+        elseif($wdMask & IN_IGNORED){
+            if($resource->isExists()){
+                $this->watch($track);
+            }
+        }
+        else{
+            $context = array(
+                'wd' => $inEvent,
+                'path' => (string)$track->getResource(),
+            );
+            $this->log('Untracked changes',$context);
         }
     }
 

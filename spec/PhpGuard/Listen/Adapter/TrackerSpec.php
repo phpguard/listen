@@ -49,6 +49,8 @@ class TrackerSpec extends ObjectBehavior
         $resource->getResource()
             ->willReturn(PathUtil::createSplFileInfo(MFS::$tmpDir,$this->testFile))
         ;
+        $resource->__toString()
+            ->willReturn($this->testFile);
 
         $this->beConstructedWith($adapter);
         $this->fileOnly(false);

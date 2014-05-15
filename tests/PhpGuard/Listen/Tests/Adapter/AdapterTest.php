@@ -85,8 +85,6 @@ abstract class AdapterTest extends TestCase
 
         $listener->start();
         $changeSet = $listener->getChangeSet();
-        //print_r($events);
-
         $this->assertCount(1,$changeSet);
         $this->assertEventHasResource($file1,FilesystemEvent::DELETE,$changeSet);
 

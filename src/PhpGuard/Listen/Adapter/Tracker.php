@@ -120,6 +120,10 @@ class Tracker
 
     public function remove(TrackedObject $tracked)
     {
+        $path = (string)$tracked->getResource();
+        if(in_array($path,$this->listener->getPaths())){
+            return;
+        }
         unset($this->map[$tracked->getID()]);
         $this->adapter->unwatch($tracked);
     }
@@ -256,7 +260,8 @@ class Tracker
             $path = $tracked;
         }
         $event = new FilesystemEvent($path,$eventMask);
-        $this->changeSet[] = $event;
+        $id = md5($path);
+        $this->changeSet[$id] = $event;
     }
 
     /**
