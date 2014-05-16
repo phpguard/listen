@@ -1,8 +1,9 @@
-# PhpGuard
+# PhpGuard\Listen
 
 [![Latest Stable Version](https://poser.pugx.org/phpguard/listen/v/stable.png)](https://packagist.org/packages/phpguard/listen)
 [![Master Build Status](https://secure.travis-ci.org/phpguard/listen.png?branch=master)](http://travis-ci.org/phpguard/listen)
 [![Coverage Status](https://coveralls.io/repos/phpguard/listen/badge.png?branch=master)](https://coveralls.io/r/phpguard/listen?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/phpguard/listen/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/phpguard/listen/?branch=master)
 
 The `PhpGuard\Listen` listens to any filesystem events and notifies you about the changes.
 
