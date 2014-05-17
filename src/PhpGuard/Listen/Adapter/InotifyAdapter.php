@@ -102,7 +102,6 @@ class InotifyAdapter extends BaseAdapter
 
     public function unwatch(TrackedObject $tracked)
     {
-        $path = (string)$tracked->getResource();
         if($tracked->getResource()->isExists()){
             return;
         }
