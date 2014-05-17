@@ -3,13 +3,11 @@ imports:
     - php
 
 tools:
-  php_code_sniffer:
-    filter:
-      excluded-paths: [ spec/*, vendor/*, tests/* ]
+  external_code_coverage: true
 
-  php_analyzer:
-    filter:
-      excluded-paths: [ spec/*, vendor/*, tests/* ]
+filter:
+  paths: [ src/* ]
+  excluded-paths: [ spec/*, vendor/*, tests/*, bin/* ]
 
 before_commands:
   - "pyrus install pecl/inotify && pyrus build pecl/inotify"

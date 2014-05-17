@@ -13,15 +13,13 @@
          bootstrap="tests/bootstrap.php"
 >
     <testsuites>
+        <testsuite name="PHPSpec Test Suite">
+            <file>./tests/PhpSpecTest.php</file>
+        </testsuite>
         <testsuite name="PhpGuard Listen TestSuite">
-            <directory>./tests/</directory>
+            <directory>./tests/PhpGuard</directory>
         </testsuite>
     </testsuites>
-    <groups>
-        <exclude>
-            <group>phpspec</group>
-        </exclude>
-    </groups>
 
     <filter>
         <whitelist>

@@ -1,6 +1,6 @@
 language: php
 
-php: [5.3.3, 5.3, 5.4, 5.5]
+php: [5.3.3, 5.3, 5.4, 5.5, 5.6]
 
 before_script:
   - "pyrus install pecl/inotify && pyrus build pecl/inotify"
@@ -11,7 +11,9 @@ before_script:
   - composer require --dev "satooshi/php-coveralls ~0.6"
 
 script:
-  - ./vendor/bin/phpunit --configuration phpunit-report.xml.dist
+  - ./vendor/bin/phpunit --coverage-clover=build/logs/clover.xml
 
 after_script:
   - php ./vendor/bin/coveralls -v
+  - wget https://scrutinizer-ci.com/ocular.phar
+  - php ocular.phar code-coverage:upload --format=php-clover ./build/logs/clover.xml
