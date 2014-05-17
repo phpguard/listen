@@ -45,15 +45,15 @@ abstract class BaseAdapter implements AdapterInterface
     {
         $this->log(sprintf(
             'Added new path to watch'
-        ),array('path'=>(string)$tracked->getResource()),LogLevel::DEBUG);
+        ),array('path'=>realpath($tracked->getResource()),LogLevel::DEBUG));
     }
 
     public function unwatch(TrackedObject $tracked)
     {
         $this->log(
             'Unwatch tracked object'
-            ,array('path'=>(string)$tracked->getResource()),LogLevel::DEBUG);
-        return;
+            ,array('path'=>realpath($tracked->getResource()),LogLevel::DEBUG)
+        );
     }
 
 } 

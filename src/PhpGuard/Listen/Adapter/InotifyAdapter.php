@@ -87,10 +87,12 @@ class InotifyAdapter extends BaseAdapter
 
     public function watch(TrackedObject $tracked)
     {
-        $path = $tracked->getResource();
+        $path = realpath($tracked->getResource());
 
-        //$tracked->setID($id);
         if($tracked->getResource() instanceof FileResource){
+            return;
+        }
+        if(!$path){
             return;
         }
         $id = inotify_add_watch($this->inotify,$path,$this->inotifyEventMask);
