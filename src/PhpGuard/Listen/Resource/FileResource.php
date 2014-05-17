@@ -76,6 +76,6 @@ class FileResource implements ResourceInterface
      */
     public function __toString()
     {
-        return realpath($this->resource);
+        return (string)$this->resource;
     }
 }
