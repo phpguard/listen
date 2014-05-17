@@ -309,9 +309,8 @@ class Listener implements LoggerAwareInterface
     /**
      * Sets a logger instance on the object
      *
-     * @param LoggerInterface $logger
-     *
-     * @return null
+     * @param   LoggerInterface $logger
+     * @return  Listener
      */
     public function setLogger(LoggerInterface $logger)
     {

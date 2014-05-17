@@ -40,9 +40,23 @@ interface AdapterInterface extends LoggerAwareInterface
      */
     public function getChangeSet();
 
+    /**
+     * @param   TrackedObject $tracked
+     * @return  void
+     */
     public function watch(TrackedObject $tracked);
 
+    /**
+     * @param   TrackedObject $tracked
+     * @return  void
+     */
     public function unwatch(TrackedObject $tracked);
 
+    /**
+     * @param   string        $message
+     * @param   array         $context
+     * @param   string        $level
+     * @return  void
+     */
     public function log($message,array $context=array(),$level = LogLevel::DEBUG);
 }

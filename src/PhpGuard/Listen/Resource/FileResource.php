@@ -19,13 +19,6 @@ class FileResource implements ResourceInterface
 {
     private $resource;
 
-    private $trackingID;
-
-    /**
-     * @var DirectoryResource
-     */
-    private $parent;
-
     public function __construct($resource)
     {
         $this->resource = $resource;
@@ -44,7 +37,7 @@ class FileResource implements ResourceInterface
     /**
      * Returns the resource tied to this Resource.
      *
-     * @return mixed The resource
+     * @return ResourceInterface
      */
     public function getResource()
     {
@@ -62,6 +55,9 @@ class FileResource implements ResourceInterface
         return is_file((string)$this->resource);
     }
 
+    /**
+     * @return null|string
+     */
     public function getChecksum()
     {
         if(!$this->isExists()){
@@ -80,6 +76,6 @@ class FileResource implements ResourceInterface
      */
     public function __toString()
     {
-        return (string)$this->resource;
+        return realpath($this->resource);
     }
 }

@@ -19,7 +19,6 @@ use PhpGuard\Listen\Resource\DirectoryResource;
 use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\TrackedObject;
 use PhpGuard\Listen\Util\PathUtil;
-
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -66,8 +65,8 @@ class Tracker
      * Check if TrackedObject with $resourceID
      * is registered
      *
-     * @param $trackID
-     * @return bool
+     * @param   string    $trackID
+     * @return  bool
      */
     public function has($trackID)
     {

@@ -12,7 +12,6 @@ namespace PhpGuard\Listen\Adapter;
  */
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
-use PhpGuard\Listen\Resource\DirectoryResource;
 use PhpGuard\Listen\Resource\FileResource;
 use PhpGuard\Listen\Resource\TrackedObject;
 
@@ -184,6 +183,9 @@ class InotifyAdapter extends BaseAdapter
         }
     }
 
+    /**
+     * @param string $newPath
+     */
     private function trackNewDir($newPath)
     {
         if(!is_dir($newPath)) return;

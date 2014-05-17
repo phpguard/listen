@@ -69,9 +69,8 @@ class TrackedObject
     }
 
     /**
-     * @param mixed $checksum
-     *
-     * @return TrackedObject
+     * @param   string  $checksum
+     * @return  TrackedObject
      */
     public function setChecksum($checksum)
     {
@@ -80,7 +79,7 @@ class TrackedObject
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getChecksum()
     {

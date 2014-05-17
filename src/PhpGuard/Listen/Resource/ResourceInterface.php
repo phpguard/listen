@@ -29,7 +29,7 @@ interface ResourceInterface
     /**
      * Returns the resource tied to this Resource.
      *
-     * @return mixed The resource
+     * @return  string|null The resource
      */
     public function getResource();
 

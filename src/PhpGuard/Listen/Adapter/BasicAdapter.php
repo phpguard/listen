@@ -11,11 +11,8 @@
 
 namespace PhpGuard\Listen\Adapter;
 
-use PhpGuard\Listen\Resource\ResourceManager;
-use PhpGuard\Listen\Resource\TrackedObject;
 use PhpGuard\Listen\Event\FilesystemEvent;
 use PhpGuard\Listen\Listener;
-use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Class BasicAdapter
@@ -61,8 +58,8 @@ class BasicAdapter extends BaseAdapter
         $tracker = $this->tracker;
         $unchecked = $tracker->getTracks();
         $tracker->clearChangeSet();
-        /* @var TrackedObject $resource */
-        /* @var SplFileInfo $spl */
+        /* @var \PhpGuard\Listen\Resource\TrackedObject $resource */
+        /* @var \Symfony\Component\Finder\SplFileInfo $spl */
         foreach($this->topDirs as $path){
             if(!is_dir($path)){
                 continue;
@@ -92,7 +89,7 @@ class BasicAdapter extends BaseAdapter
     private function doCleanup($unchecked)
     {
         $tracker = $this->tracker;
-        /* @var TrackedObject $tracked */
+        /* @var \PhpGuard\Listen\Resource\TrackedObject $tracked */
         foreach($unchecked as $id=>$tracked){
             $origin = $tracked->getResource();
             if(!$origin->isExists()){
