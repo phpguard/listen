@@ -161,22 +161,28 @@ class Listener implements LoggerAwareInterface
             );
         }
 
-        if(!isset($this->adapter)){
-            $this->adapter = Listen::getDefaultAdapter();
-            $this->adapter->initialize($this);
-        }
-        if($this->logger){
-            $this->adapter->setLogger($this->logger);
-        }
-
         $this->listen = true;
 
         while($this->listen){
             usleep($this->latency);
-            $this->adapter->evaluate();
-            $this->changeSet = $this->adapter->getChangeSet();
-            $this->notify();
+            $this->evaluate();
         }
+    }
+
+    public function evaluate()
+    {
+        if(!isset($this->adapter)){
+            $this->adapter = Listen::getDefaultAdapter();
+            $this->adapter->initialize($this);
+        }
+
+        if($this->logger){
+            $this->adapter->setLogger($this->logger);
+        }
+
+        $this->adapter->evaluate();
+        $this->changeSet = $this->adapter->getChangeSet();
+        $this->notify();
     }
 
     public function stop()

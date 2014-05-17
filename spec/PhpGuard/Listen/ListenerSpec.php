@@ -218,6 +218,28 @@ class ListenerSpec extends ObjectBehavior
         $this->hasPath($ftxt)->shouldReturn(true);
     }
 
+    public function it_should_evaluate_file_system_events(
+        AdapterInterface $adapter,
+        LoggerInterface $logger,
+        FilesystemEvent $event
+    )
+    {
+        $adapter->setLogger($logger)
+            ->shouldBeCalled();
+        $adapter->initialize($this)
+            ->shouldBeCalled();
+        $adapter->evaluate()
+            ->shouldBeCalled();
+        $adapter->getChangeSet()
+            ->willReturn(array($event))
+            ->shouldBeCalled();
+
+        $this->setLogger($logger);
+        $this->to(mfs::$tmpDir);
+        $this->setAdapter($adapter);
+        $this->evaluate();
+    }
+
     function it_should_start_evaluate_filesystem_event_properly(
         AdapterInterface $adapter,
         LoggerInterface $logger,
@@ -247,4 +269,6 @@ class ListenerSpec extends ObjectBehavior
         $this->start();
         $this->getChangeset()->shouldContain($event);
     }
+
+
 }
